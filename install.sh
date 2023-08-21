@@ -12,3 +12,6 @@ rm -rf $HOME/.tmux.conf
 #rm -rf $HOME/.tmux/plugins/tpm
 #git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ln -s $DOTFILES/tmux/tmux.conf $HOME/.tmux.conf
+
+rm -rf $HOME/.config/nvim
+ln -s $DOTFILES/nvim $HOME/.config/nvim
