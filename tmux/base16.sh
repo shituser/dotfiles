@@ -62,4 +62,5 @@ set -g status-left "👽 $tm_session_name"
 
 tm_date="#[default,bg=$base00,fg=$base0C] %R"
 tm_host="#[fg=$base0E,bg=$base00] #h "
-set -g status-right "#{spotify_playback } #{spotify_status_full} $tm_date $tm_host"
+tm_battery="#[fg=$base0F,bg=$base00] ♥ #(pmset -g batt | awk '{print $3}' | sed 's/;//' | tail -n+2)"
+set -g status-right "$tm_battery $tm_date $tm_host"
