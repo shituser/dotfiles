@@ -14,11 +14,11 @@ local packer_bootstrap = ensure_packer()
 require('packer').reset()
 require('packer').init({
     compile_path = vim.fn.stdpath('data')..'/site/plugin/packer_compiled.lua',
-    --display = {
-    --open_fn = function()
-    --return require('packer.util').float({ border = 'solid' })
-    --end,
-    --},
+    display = {
+        open_fn = function()
+            return require('packer.util').float({ border = 'solid' })
+        end,
+    },
 })
 
 local use = require('packer').use
@@ -27,13 +27,11 @@ use 'wbthomason/packer.nvim'
 
 -- Toky night color scheme
 use({
-    'folke/tokyonight.nvim'
-    -- 'folke/tokyonight.nvim',
-    -- config = function()
-    --   require('shituser/plugins/tokyonight')
-    -- end,
+    'folke/tokyonight.nvim',
+    config = function()
+        require('shituser/plugins/tokyonight')
+    end
 })
-vim.cmd[[colorscheme tokyonight]]
 
 -- Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary. That's it.
 use 'tpope/vim-commentary'
@@ -77,6 +75,43 @@ use({
   'karb94/neoscroll.nvim',
   config = function()
     require('neoscroll').setup()
+  end,
+})
+
+-- Fuzzy finder
+use({
+  'nvim-telescope/telescope.nvim',
+  after = 'tokyonight.nvim',
+  requires = {
+    'nvim-lua/plenary.nvim',
+    'kyazdani42/nvim-web-devicons',
+    'nvim-telescope/telescope-live-grep-args.nvim',
+    { 'nvim-telescope/telescope-fzf-native.nvim', run = 'make' },
+  },
+  config = function()
+    require('shituser/plugins/telescope')
+  end,
+})
+
+-- File tree sidebar
+use({
+  'kyazdani42/nvim-tree.lua',
+  requires = 'kyazdani42/nvim-web-devicons',
+  config = function()
+    require('shituser/plugins/nvim-tree')
+  end,
+})
+
+-- A Status line.
+use({
+  'nvim-lualine/lualine.nvim',
+  after = 'tokyonight.nvim',
+  requires = {
+    'arkav/lualine-lsp-progress',
+    'kyazdani42/nvim-web-devicons',
+  },
+  config = function()
+    require('shituser/plugins/lualine')
   end,
 })
 

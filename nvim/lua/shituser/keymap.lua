@@ -1,5 +1,5 @@
-vim.g.mapleader = ','
-vim.g.maplocalleader = ','
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ' '
 
 vim.keymap.set('n', '<Leader>ev', ':e $MYVIMRC')
 vim.keymap.set('n', '<Leader><space>', ':nohlsearch<Cr>')
