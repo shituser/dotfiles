@@ -43,3 +43,7 @@ vim.opt.showmode = false
 --vim.opt.redrawtime = 10000 -- Allow more time for loading syntax on large files
 --vim.opt.exrc = true
 --vim.opt.secure = true
+
+-- Set spelling on and dictionaries to English and Bulgarian
+vim.opt.spelllang = 'en_us,bg'
+vim.opt.spell = true
