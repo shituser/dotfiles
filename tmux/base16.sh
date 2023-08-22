@@ -63,6 +63,7 @@ set -g status-left "👽 $tm_session_name"
 tm_date="#[default,bg=$base00,fg=$base0C] %R"
 tm_host="#[fg=$base0E,bg=$base00] #h "
 tm_battery="#[fg=$base0F,bg=$base00] ♥ #(pmset -g batt | awk '{print $3}' | sed 's/;//' | tail -n+2)"
+
 # OSX
 # set -g status-right "$tm_battery $tm_date $tm_host"
 
