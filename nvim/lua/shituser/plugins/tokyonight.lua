@@ -1,4 +1,10 @@
 require('tokyonight').setup({
+  -- style = "night",
+  styles = {
+    comments = { italic = true },
+    keywords = { italic = true },
+    functions = {},
+  },
   on_highlights = function(hl, c)
     local prompt = "#2d3149"
 

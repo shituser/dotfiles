@@ -25,7 +25,7 @@ local use = require('packer').use
 
 use 'wbthomason/packer.nvim'
 
--- Toky night color scheme
+-- Tokyo night color scheme
 use({
     'folke/tokyonight.nvim',
     config = function()
@@ -112,6 +112,18 @@ use({
   },
   config = function()
     require('shituser/plugins/lualine')
+  end,
+})
+
+-- Display hex color representations in Vim
+use({
+  'NvChad/nvim-colorizer.lua',
+  config = function()
+    require('colorizer').setup({
+      user_default_options = {
+        names = false,
+      }
+    })
   end,
 })
 
