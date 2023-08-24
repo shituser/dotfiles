@@ -217,6 +217,8 @@ use({
     'williamboman/mason.nvim',
     'williamboman/mason-lspconfig.nvim',
     'b0o/schemastore.nvim',
+    'jose-elias-alvarez/null-ls.nvim',
+    'jayp0521/mason-null-ls.nvim',
   },
   config = function()
     require('shituser/plugins/lspconfig')
@@ -245,9 +247,9 @@ use({
 if packer_bootstrap then
     require('packer').sync()
 end
--- vim.cmd([[
--- augroup packer_user_config
--- autocmd!
--- autocmd BufWritePost plugins.lua source <afile> | PackerCompile
--- augroup end
--- ]])
+vim.cmd([[
+augroup packer_user_config
+autocmd!
+autocmd BufWritePost plugins.lua source <afile> | PackerCompile
+augroup end
+]])
