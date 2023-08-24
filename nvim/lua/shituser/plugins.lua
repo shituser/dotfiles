@@ -59,6 +59,7 @@ use('nelstrom/vim-visual-star-search')
 use('jessarcher/vim-heritage')
 
 -- Text objects for HTML attributes.
+-- This vim plugin provides two text objects: ax and ix.
 use({
   'whatyouhide/vim-textobj-xmlattr',
   requires = 'kana/vim-textobj-user',
@@ -75,6 +76,35 @@ use({
   'karb94/neoscroll.nvim',
   config = function()
     require('neoscroll').setup()
+  end,
+})
+
+-- All closing buffers without closing the split window.
+use({
+  'famiu/bufdelete.nvim',
+  config = function()
+    vim.keymap.set('n', '<Leader>q', ':Bdelete<CR>')
+    vim.keymap.set('n', '<Leader>Q', ':bufdo Bdelete<CR>')
+  end,
+})
+
+-- Split arrays and methods onto multiple lines, or join them back up.
+-- gS to split a one-liner into multiple lines
+-- gJ (with the cursor on the first line of a block) to join a block into a single-line statement.
+use({
+  'AndrewRadev/splitjoin.vim',
+  config = function()
+    vim.g.splitjoin_html_attributes_bracket_on_new_line = 1
+    vim.g.splitjoin_trailing_comma = 1
+    vim.g.splitjoin_php_method_chain_full = 1
+  end,
+})
+
+-- Automatically fix indentation when pasting code.
+use({
+  'sickill/vim-pasta',
+  config = function()
+    vim.g.pasta_disabled_filetypes = { 'fugitive' }
   end,
 })
 
@@ -124,6 +154,14 @@ use({
         names = false,
       }
     })
+  end,
+})
+
+-- Display indentation lines.
+use({
+  'lukas-reineke/indent-blankline.nvim',
+  config = function()
+    require('shituser/plugins/indent-blankline')
   end,
 })
 
