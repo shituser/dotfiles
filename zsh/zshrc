@@ -96,16 +96,12 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-#alias charles="ssh root@45.63.114.171"
-alias winston="ssh nikola@167.71.137.135"
-alias rusko="ssh cvetu3am@cvetiata.net -p 1022"
 alias vi="nvim"
 alias tmux="tmux -2"
 alias art="php artisan"
 alias ll="ls -alFh"
 alias phpunit="vendor/bin/phpunit"
 alias kitty="~/.local/kitty.app/bin/kitty"
-alias gpp="git push ecvete && git push ecvetia && git push bgflorist && git push podaribuket"
 
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
