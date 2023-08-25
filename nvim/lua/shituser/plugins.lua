@@ -210,6 +210,9 @@ use({
   end,
 })
 
+-- Hopefully enable blade support
+require('shituser/plugins/tsblade')
+
 -- Language Server Protocol.
 use({
   'neovim/nvim-lspconfig',
