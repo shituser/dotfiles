@@ -1,18 +1,31 @@
-font_family Operator Mono Book
-bold_font Operator Mono Bold
-italic_font Operator Mono Italic
-bold_italic_font Operator Mono Bold Italic
+# OSX
+#font_family VictorMono Nerd Font Mono Medium
+#bold_font VictorMono Nerd Font Mono SemiBold
+#italic_font VictorMono Nerd Font Mono Medium Italic
+#bold_italic_font VictorMono Nerd Font Mono SemiBold Italic
+#font_size 15
 
-font_size 13
+# Linux
+font_family Victor Mono Medium
+bold_font Victor Mono SemiBold
+italic_font Victor Mono Medium Italic
+bold_italic_font Victor Mono SemiBold Italic
+font_size 12
+hide_window_decorations yes
+initial_window_width 1920
+initial_window_height 1080
+
 adjust_line_height 175%
 
+cursor_shape block
+shell_integration no-cursor
 cursor_blink_interval 0
-enable_audio_beell 0
-hide_window_decorations yes
-window_padding_width 10
+
+enable_audio_bell 0
+window_padding_width 5
 
 
 # BEGIN_KITTY_THEME
-# Alucard
+# Catppuccin-Frappe
 include current-theme.conf
 # END_KITTY_THEME

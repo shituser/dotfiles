@@ -36,7 +36,7 @@ use({
 -- Comment stuff out. Use gcc to comment out a line (takes a count), gc to comment out the target of a motion (for example, gcap to comment out a paragraph), gc in visual mode to comment out the selection, and gc in operator pending mode to target a comment. You can also use it as a command, either with a range like :7,17Commentary, or as part of a :global invocation like with :g/TODO/Commentary. That's it.
 use 'tpope/vim-commentary'
 
--- Surround.vim is all about "surroundings": parentheses, brackets, quotes, XML tags, and more. The plugin provides mappings to easily delete, change and add such surroundings in pairs.
+-- Surround.vim is all about "surroundings": parentheses, brackets, quotes, XML tags, and more.
 -- cs"' Changes "Hello world" to 'Hello world'. cst" changes <h1>Hello world</h1> to "Hello world"
 use 'tpope/vim-surround'
 
@@ -202,7 +202,7 @@ use({
     require('nvim-treesitter.install').update({ with_sync = true })
   end,
   requires = {
-    -- 'JoosepAlviste/nvim-ts-context-commentstring',
+    'JoosepAlviste/nvim-ts-context-commentstring',
     'nvim-treesitter/nvim-treesitter-textobjects',
   },
   config = function()
@@ -228,7 +228,7 @@ use({
   end,
 })
 
--- Completion
+-- Auto Completion
 use({
   'hrsh7th/nvim-cmp',
   requires = {
@@ -255,14 +255,43 @@ use({
   end,
 })
 
+-- Centers single buffer
+use({
+  'smithbm2316/centerpad.nvim',
+  config = function()
+    vim.keymap.set('n', '<Leader>w', ':Centerpad<CR>')
+  end
+})
+
+use({
+  'godlygeek/tabular',
+  config = function()
+    vim.keymap.set('n', '<Leader>a=', ':Tabularize /=><CR>')
+    vim.keymap.set('v', '<Leader>a=', ':Tabularize /=><CR>')
+    vim.keymap.set('n', '<Leader>a:', ":Tabularize /:\zs<CR>")
+    vim.keymap.set('v', '<Leader>a:', ":Tabularize /:\zs<CR>")
+  end
+})
+
 -- Automatically set up your configuration after cloning packer.nvim
 -- Put this at the end after all plugins
 if packer_bootstrap then
     require('packer').sync()
 end
+
+-- Recompile Packer on file write
 vim.cmd([[
 augroup packer_user_config
 autocmd!
 autocmd BufWritePost plugins.lua source <afile> | PackerCompile
 augroup end
+]])
+
+-- Highlight TODO's
+vim.cmd([[
+augroup vimrc_todo
+  au!
+  au Syntax * syn match MyTodo /(FIXME|TODO|OPTIMIZE|NOTE)i/ containedin=.*Comment,vimCommentTitle
+augroup END
+hi def link MyTodo Todo
 ]])

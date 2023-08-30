@@ -3,6 +3,7 @@ require('mason').setup()
 require('mason-lspconfig').setup({ automatic_installation = true })
 
 local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+capabilities.textDocument.completion.completionItem.snippetSupport = true
 
 -- PHP
 require('lspconfig').intelephense.setup({
@@ -80,6 +81,21 @@ require('null-ls').setup({
 
 require('mason-null-ls').setup({ automatic_installation = true })
 
+-- Emmet
+require("lspconfig").emmet_ls.setup({
+    -- on_attach = on_attach,
+    capabilities = capabilities,
+    filetypes = { "css", "html", "blade", "javascript", "less", "sass", "scss", "svelte", "vue" },
+    -- init_options = {
+    --   html = {
+    --     options = {
+    --       -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
+    --       ["bem.enabled"] = true,
+    --     },
+    --   },
+    -- }
+})
+
 -- Keymaps
 vim.keymap.set('n', '<Leader>d', '<cmd>lua vim.diagnostic.open_float()<CR>')
 vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
@@ -88,6 +104,7 @@ vim.keymap.set('n', 'gd', ':Telescope lsp_definitions<CR>')
 vim.keymap.set('n', 'ga', '<cmd>lua vim.lsp.buf.code_action()<CR>')
 vim.keymap.set('n', 'gi', ':Telescope lsp_implementations<CR>')
 vim.keymap.set('n', 'gr', ':Telescope lsp_references<CR>')
+vim.keymap.set('n', 'gf', '<cmd>lua vim.lsp.buf.formatting()<CR>')
 vim.keymap.set('n', '<Leader>lr', ':LspRestart<CR>', { silent = true })
 vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
 vim.keymap.set('n', '<Leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')

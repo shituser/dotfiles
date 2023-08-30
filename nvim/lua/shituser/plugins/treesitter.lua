@@ -21,5 +21,5 @@ require('nvim-treesitter.configs').setup({
         ['aa'] = '@parameter.outer',
       },
     }
-  }
+  },
 })
