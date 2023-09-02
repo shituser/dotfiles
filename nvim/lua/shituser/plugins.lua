@@ -278,20 +278,3 @@ use({
 if packer_bootstrap then
     require('packer').sync()
 end
-
--- Recompile Packer on file write
-vim.cmd([[
-augroup packer_user_config
-autocmd!
-autocmd BufWritePost plugins.lua source <afile> | PackerCompile
-augroup end
-]])
-
--- Highlight TODO's
-vim.cmd([[
-augroup vimrc_todo
-  au!
-  au Syntax * syn match MyTodo /(FIXME|TODO|OPTIMIZE|NOTE)i/ containedin=.*Comment,vimCommentTitle
-augroup END
-hi def link MyTodo Todo
-]])
