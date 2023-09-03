@@ -96,6 +96,12 @@ require("lspconfig").emmet_ls.setup({
     -- }
 })
 
+-- TailwindCss
+require("lspconfig").tailwindcss.setup({
+  capabilities = capabilities,
+  filetypes = { "css", "html", "blade", "svelte", "vue" },
+})
+
 -- Keymaps
 vim.keymap.set('n', '<Leader>d', '<cmd>lua vim.diagnostic.open_float()<CR>')
 vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>')
