@@ -118,6 +118,7 @@ export PATH=$PATH:$HOME/.local/lib/python3.6/site-packages
 # Fly.IO exports
 export FLYCTL_INSTALL="/home/nikola/.fly"
 export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
 # Shell-GPT integration ZSH v0.1
 _sgpt_zsh() {
 if [[ -n "$BUFFER" ]]; then

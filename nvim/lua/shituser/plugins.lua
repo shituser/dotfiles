@@ -46,6 +46,9 @@ use 'tpope/vim-sleuth'
 -- Allows using dot command to repeat actions from plugins
 use 'tpope/vim-repeat'
 
+-- SudoWrite SudoEdit and other useful commands
+use 'tpope/vim-eunuch'
+
 -- Navigate seamlessly between Vim windows and Tmux panes.
 use('christoomey/vim-tmux-navigator')
 
