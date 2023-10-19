@@ -10,7 +10,7 @@ augroup end
 vim.cmd([[
 augroup vimrc_todo
   au!
-  au Syntax * syn match MyTodo /(FIXME|TODO|OPTIMIZE|NOTE)i/ containedin=.*Comment,vimCommentTitle
+  au Syntax * syn match MyTodo /(FIXME|TODO|OPTIMIZE|NOTE|fixme|todo|optimize|note)i/ containedin=.*Comment,vimCommentTitle
 augroup END
 hi def link MyTodo Todo
 ]])
@@ -18,18 +18,14 @@ hi def link MyTodo Todo
 -- Set tab and space width
 vim.cmd([[
 augroup autosourcing
-	autocmd!
-	autocmd Filetype blade setlocal ts=2
-	autocmd Filetype blade setlocal sw=2
+  autocmd!
+  autocmd BufWritePost init.lua source % " Auto source .vimrc
 
-	autocmd Filetype css setlocal ts=2
-	autocmd Filetype scss setlocal ts=2
-	autocmd Filetype html setlocal ts=2
-	autocmd Filetype javascript setlocal ts=4
+  autocmd Filetype blade setlocal shiftwidth=2 tabstop=2
 
-	autocmd Filetype css setlocal sw=2
-	autocmd Filetype scss setlocal sw=2
-	autocmd Filetype html setlocal sw=2
-	autocmd Filetype javascript setlocal sw=4
+  autocmd Filetype css setlocal shiftwidth=2 tabstop=2
+  autocmd Filetype scss setlocal shiftwidth=2 tabstop=2
+
+  autocmd Filetype html setlocal shiftwidth=2 tabstop=2
 augroup END
 ]])

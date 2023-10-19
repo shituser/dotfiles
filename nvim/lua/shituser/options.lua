@@ -26,7 +26,7 @@ vim.opt.splitright = true
 --vim.opt.scrolloff = 8 -- Keeps cursor "in the center" when scrolling
 --vim.opt.sidescrolloff = 8
 
---vim.opt.clipboard = 'unnamedplus' -- Use Linux system clipboard
+vim.opt.clipboard = 'unnamedplus' -- Use Linux system clipboard
 
 vim.opt.confirm = true -- ask for confirmation instead of erroring
 vim.opt.undofile = true -- persistent undo
