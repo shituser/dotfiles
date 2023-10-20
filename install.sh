@@ -9,8 +9,8 @@ rm -rf $HOME/.config/kitty
 ln -s $DOTFILES/kitty $HOME/.config/kitty
 
 rm -rf $HOME/.tmux.conf
-#rm -rf $HOME/.tmux/plugins/tpm
-#git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+rm -rf $HOME/.tmux/plugins/tpm
+git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ln -s $DOTFILES/tmux/tmux.conf $HOME/.tmux.conf
 
 rm -rf $HOME/.config/nvim
