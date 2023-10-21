@@ -68,6 +68,9 @@ plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
 
+# BitWarden session
+source ~/.config/bw_session
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
