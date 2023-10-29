@@ -22,32 +22,21 @@ set -g status-right-length 150
 set -g status-interval 5
 
 # default statusbar colors
-#set-option -g status-fg $base02
-#set-option -g status-bg $base00
-#set-option -g status-attr default
-#set-option -g status-style fg=$base02,bg=$base00,default
+# set-option -g status-style fg=$base02,bg=$base00,default
 set-option -g status-style "fg=#545c7e bg=#1f2335"
 
-#set-window-option -g window-status-fg $base03
-#set-window-option -g window-status-bg $base00
-set-window-option -g window-status-style fg=$base04,bg=$base00
+set-window-option -g window-status-style fg=$base00,bg=$base00
 set -g window-status-format " #I #W"
 
 # active window title colors
-#set-window-option -g window-status-current-fg $base0C
-#set-window-option -g window-status-current-bg $base00
 set-window-option -g window-status-current-style fg=$base0C,bg=$base00
 set-window-option -g  window-status-current-format " #[bold]#W "
 
 # pane border colors
-#set-window-option -g pane-border-fg $base03
-#set-window-option -g pane-active-border-fg $base0C
 set-window-option -g pane-border-style fg=$base03
 set-window-option -g pane-active-border-style fg=$base0C
 
 # message text
-#set-option -g message-bg $base00
-#set-option -g message-fg $base0C
 set-option -g message-style fg=$base0C,bg=$base00
 
 # pane number display
@@ -60,13 +49,14 @@ set-window-option -g clock-mode-colour $base0C
 tm_session_name="#[default,bg=$base00,fg=$base0E] #S "
 set -g status-left "👽 $tm_session_name"
 
-tm_date="#[default,bg=$base00,fg=$base0C] %R"
-tm_host="#[fg=$base0E,bg=$base00] #h "
+tm_date="#[default,bg=$base00,fg=$base0C]  %d/%m/%Y 󰥔 %H:%M"
+tm_host="#[fg=$base0E,bg=$base00]  #h "
 tm_battery="#[fg=$base0F,bg=$base00] ♥ #(pmset -g batt | awk '{print $3}' | sed 's/;//' | tail -n+2)"
 tm_spotify="#[fg=$base0A,bg=$base00]   #{spotify_status_full}"
+tm_cpu="#[fg=$base0F,bg=$base00]󰻠 #{cpu_percentage} CPU | 󰍛 #{ram_percentage} RAM"
 
 # OSX
 # set -g status-right "$tm_battery $tm_date $tm_host"
 
 # Linux
-set -g status-right "$tm_spotify $tm_date $tm_host"
+set -g status-right "$tm_spotify $tm_cpu $tm_date $tm_host"
