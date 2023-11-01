@@ -47,7 +47,7 @@ set-option -g display-panes-colour $base01
 set-window-option -g clock-mode-colour $base0C
 
 tm_session_name="#[default,bg=$base00,fg=$base0E] #S "
-set -g status-left "👽 $tm_session_name"
+set -g status-left " 👽 $tm_session_name"
 
 tm_date="#[default,bg=$base00,fg=$base0C]  %d/%m/%Y 󰥔 %H:%M"
 tm_host="#[fg=$base0E,bg=$base00]  #h "
