@@ -102,6 +102,14 @@ require("lspconfig").tailwindcss.setup({
   filetypes = { "css", "html", "blade", "svelte", "vue" },
 })
 
+local nvim_lsp = require("lspconfig")
+local on_attach = function(client, bufnr)
+  require("tailwindcss-colors").buf_attach(bufnr)
+end
+nvim_lsp["tailwindcss"].setup({
+  on_attach = on_attach,
+})
+
 -- Keymaps
 vim.keymap.set('n', '<Leader>d', '<cmd>lua vim.diagnostic.open_float()<CR>')
 vim.keymap.set('n', '[d', '<cmd>lua vim.diagnostic.goto_prev()<CR>')

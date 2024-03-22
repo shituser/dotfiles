@@ -1,3 +1,6 @@
+local augroup = vim.api.nvim_create_augroup   -- Create/get autocommand group
+local autocmd = vim.api.nvim_create_autocmd   -- Create autocommand
+
 -- Recompile Packer on file write
 vim.cmd([[
 augroup packer_user_config
@@ -8,24 +11,23 @@ augroup end
 
 -- Highlight TODO's
 vim.cmd([[
-augroup vimrc_todo
+augroup vim_todo
   au!
   au Syntax * syn match MyTodo /(FIXME|TODO|OPTIMIZE|NOTE|fixme|todo|optimize|note)i/ containedin=.*Comment,vimCommentTitle
 augroup END
 hi def link MyTodo Todo
 ]])
 
--- Set tab and space width
-vim.cmd([[
-augroup autosourcing
-  autocmd!
-  autocmd BufWritePost init.lua source % " Auto source .vimrc
+-- Remove whitespace on save
+autocmd('BufWritePre', {
+  pattern = '',
+  command = ":%s/\\s\\+$//e"
+})
 
-  autocmd Filetype blade setlocal shiftwidth=2 tabstop=2
-
-  autocmd Filetype css setlocal shiftwidth=2 tabstop=2
-  autocmd Filetype scss setlocal shiftwidth=2 tabstop=2
-
-  autocmd Filetype html setlocal shiftwidth=2 tabstop=2
-augroup END
-]])
+-- Set indentation to 2 spaces
+augroup('setIndent', { clear = true })
+autocmd('Filetype', {
+  group = 'setIndent',
+  pattern = { 'xml', 'html', 'xhtml', 'css', 'scss', 'javascript', 'typescript', 'yaml', 'lua', 'blade' },
+  command = 'setlocal shiftwidth=2 tabstop=2'
+})

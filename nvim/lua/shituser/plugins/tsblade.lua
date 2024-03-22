@@ -10,7 +10,7 @@ parser_config.blade = {
 
 -- Set the *.blade.php file to be filetype of blade
 vim.cmd([[
-augroup BladeFiltypeRelated
-au BufNewFile,BufRead *.blade.php set ft=blade
-augroup END
+  augroup BladeFiltypeRelated
+  au BufNewFile,BufRead *.blade.php set ft=blade
+  augroup END
 ]])

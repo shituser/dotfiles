@@ -108,8 +108,9 @@ alias art="php artisan"
 alias ll="ls -alFh"
 alias phpunit="vendor/bin/phpunit"
 alias kitty="~/.local/kitty.app/bin/kitty"
-alias gpp="git push ecvete && git push ecvetia"
+alias gpp="git push ecvete && git push ecvetia && git push podaribuket && git push bgflorist"
 
+PATH="$HOME/.config/composer/vendor/bin:$PATH"
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/go
 export PATH=$GOPATH/bin:$GOROOT/bin:$PATH:$HOME/.dotfiles/tmux/scripts
@@ -150,3 +151,5 @@ fi
 zle -N _sgpt_zsh
 bindkey ^l _sgpt_zsh
 # Shell-GPT integration ZSH v0.1
+source ~/.openai_key
+alias aicom="git diff | sgpt 'Generate git commit message, for my changes'"

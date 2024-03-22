@@ -13,11 +13,11 @@ require('nvim-tree').setup({
         folder_arrow = false,
       },
       glyphs = {
-        -- git = {
-        --   unstaged = "◌",
-        --   untracked = "󰐕",
-        --   ignored = "󱙄",
-        -- },
+        git = {
+          unstaged = "◌",
+          untracked = "󰐕",
+          ignored = "󱙄",
+        },
       },
     },
     indent_markers = {
