@@ -135,6 +135,17 @@ use({
   end,
 })
 
+-- Override blade.php icon, since one is missing in my font
+require('nvim-web-devicons').setup({
+  override_by_extension = {
+    ["blade.php"] = {
+      icon = '',
+      color = "#F05340",
+      name = "Blade"
+    }
+  }
+})
+
 -- A Status line.
 use({
   'nvim-lualine/lualine.nvim',
