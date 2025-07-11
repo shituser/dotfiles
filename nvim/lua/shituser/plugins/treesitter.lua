@@ -1,5 +1,7 @@
 require('nvim-treesitter.configs').setup({
-  ensure_installed = 'all',
+  ensure_installed = {
+    "lua", "php", "javascript", "html", "css", "vue", "elixir", "blade", "heex"
+  },
   highlight = {
     enable = true,
   },
@@ -13,7 +15,6 @@ require('nvim-treesitter.configs').setup({
       keymaps = {
         ['if'] = '@function.inner',
         ['af'] = '@function.outer',
-        -- A for attribute
         ['ia'] = '@parameter.inner',
         ['aa'] = '@parameter.outer',
       },

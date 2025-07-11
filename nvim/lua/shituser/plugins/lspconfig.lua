@@ -1,79 +1,38 @@
--- Setup Mason to automatically install LSP servers
 require('mason').setup()
 require('mason-lspconfig').setup({ automatic_installation = true })
 
-local capabilities = require('cmp_nvim_lsp').default_capabilities(vim.lsp.protocol.make_client_capabilities())
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 
--- PHP
-require('lspconfig').intelephense.setup({
-  commands = {
-    IntelephenseIndex = {
-      function()
-        vim.lsp.buf.execute_command({ command = 'intelephense.index.workspace' })
-      end,
-    },
-  },
-  on_attach = function(client, bufnr)
-    client.server_capabilities.documentFormattingProvider = false
-    client.server_capabilities.documentRangeFormattingProvider = false
-    -- if client.server_capabilities.inlayHintProvider then
-    --   vim.lsp.buf.inlay_hint(bufnr, true)
-    -- end
-  end,
-  capabilities = capabilities
-})
+local on_attach = function(client, bufnr)
+  require("tailwindcss-colors").buf_attach(bufnr)
+  client.server_capabilities.documentFormattingProvider = false
+  client.server_capabilities.documentRangeFormattingProvider = false
+end
 
--- Elixir
-require('lspconfig').elixirls.setup({
-  on_attach = function(client, bufnr)
-    client.server_capabilities.documentFormattingProvider = false
-    client.server_capabilities.documentRangeFormattingProvider = false
-    -- if client.server_capabilities.inlayHintProvider then
-    --   vim.lsp.buf.inlay_hint(bufnr, true)
-    -- end
-  end,
-  capabilities = capabilities
-})
+local lspconfig = require('lspconfig')
 
--- Vue, JavaScript, TypeScript
-require('lspconfig').volar.setup({
-  on_attach = function(client, bufnr)
-    client.server_capabilities.documentFormattingProvider = false
-    client.server_capabilities.documentRangeFormattingProvider = false
-    -- if client.server_capabilities.inlayHintProvider then
-    --   vim.lsp.buf.inlay_hint(bufnr, true)
-    -- end
-  end,
+lspconfig.intelephense.setup({ on_attach = on_attach, capabilities = capabilities })
+lspconfig.elixirls.setup({ on_attach = on_attach, capabilities = capabilities })
+lspconfig.volar.setup({
+  on_attach = on_attach,
   capabilities = capabilities,
-  -- Enable "Take Over Mode" where volar will provide all JS/TS LSP services
-  -- This drastically improves the responsiveness of diagnostic updates on change
   filetypes = { 'javascript', 'vue' },
 })
-
-require('lspconfig').ts_ls.setup({
+lspconfig.ts_ls.setup({
   init_options = {
     plugins = {
       {
         name = "@vue/typescript-plugin",
         location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
-        languages = {"javascript", "typescript", "vue"},
+        languages = { "javascript", "typescript", "vue" },
       },
     },
   },
-  filetypes = {
-    "javascript",
-    "javascriptreact",
-    "javascript.jsx",
-    "typescript",
-    "typescriptreact",
-    "typescript.tsx",
-    "vue",
-  },
+  filetypes = { "javascript", "typescript", "vue" },
+  capabilities = capabilities,
 })
-
--- JSON
-require('lspconfig').jsonls.setup({
+lspconfig.jsonls.setup({
   capabilities = capabilities,
   settings = {
     json = {
@@ -81,35 +40,14 @@ require('lspconfig').jsonls.setup({
     },
   },
 })
-
-
--- Emmet
-require("lspconfig").emmet_ls.setup({
-    -- on_attach = on_attach,
-    capabilities = capabilities,
-    filetypes = { "css", "html", "blade", "javascript", "less", "sass", "scss", "svelte", "vue" },
-    -- init_options = {
-    --   html = {
-    --     options = {
-    --       -- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
-    --       ["bem.enabled"] = true,
-    --     },
-    --   },
-    -- }
+lspconfig.emmet_ls.setup({
+  capabilities = capabilities,
+  filetypes = { "css", "html", "blade", "javascript", "less", "sass", "scss", "svelte", "vue" },
 })
-
--- TailwindCss
-require("lspconfig").tailwindcss.setup({
+lspconfig.tailwindcss.setup({
+  on_attach = on_attach,
   capabilities = capabilities,
   filetypes = { "css", "html", "blade", "svelte", "vue" },
-})
-
-local nvim_lsp = require("lspconfig")
-local on_attach = function(client, bufnr)
-  require("tailwindcss-colors").buf_attach(bufnr)
-end
-nvim_lsp["tailwindcss"].setup({
-  on_attach = on_attach,
 })
 
 -- Keymaps
@@ -126,18 +64,15 @@ vim.keymap.set('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>')
 vim.keymap.set('n', '<Leader>rn', '<cmd>lua vim.lsp.buf.rename()<CR>')
 
 -- Commands
-vim.api.nvim_create_user_command('Format', function() vim.lsp.buf.format({ timeout_ms = 5000 }) end, {})
+vim.api.nvim_create_user_command('Format', function()
+  vim.lsp.buf.format({ timeout_ms = 5000 })
+end, {})
 
--- Diagnostic configuration
-vim.diagnostic.config({
-  virtual_text = false,
-  float = {
-    source = true,
-  }
-})
+-- Diagnostics
+vim.diagnostic.config({ virtual_text = false, float = { source = true } })
 
--- Sign configuration
+-- Signs
 vim.fn.sign_define('DiagnosticSignError', { text = '', texthl = 'DiagnosticSignError' })
-vim.fn.sign_define('DiagnosticSignWarn', { text = '', texthl = 'DiagnosticSignWarn' })
-vim.fn.sign_define('DiagnosticSignInfo', { text = '', texthl = 'DiagnosticSignInfo' })
-vim.fn.sign_define('DiagnosticSignHint', { text = '', texthl = 'DiagnosticSignHint' })
+vim.fn.sign_define('DiagnosticSignWarn',  { text = '', texthl = 'DiagnosticSignWarn' })
+vim.fn.sign_define('DiagnosticSignInfo',  { text = '', texthl = 'DiagnosticSignInfo' })
+vim.fn.sign_define('DiagnosticSignHint',  { text = '', texthl = 'DiagnosticSignHint' })
