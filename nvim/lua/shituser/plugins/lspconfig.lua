@@ -51,6 +51,27 @@ require('lspconfig').volar.setup({
   filetypes = { 'javascript', 'vue' },
 })
 
+require('lspconfig').ts_ls.setup({
+  init_options = {
+    plugins = {
+      {
+        name = "@vue/typescript-plugin",
+        location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
+        languages = {"javascript", "typescript", "vue"},
+      },
+    },
+  },
+  filetypes = {
+    "javascript",
+    "javascriptreact",
+    "javascript.jsx",
+    "typescript",
+    "typescriptreact",
+    "typescript.tsx",
+    "vue",
+  },
+})
+
 -- JSON
 require('lspconfig').jsonls.setup({
   capabilities = capabilities,
@@ -61,25 +82,6 @@ require('lspconfig').jsonls.setup({
   },
 })
 
--- null-ls
-require('null-ls').setup({
-  sources = {
-    require('null-ls').builtins.diagnostics.eslint_d.with({
-      condition = function(utils)
-        return utils.root_has_file({ '.eslintrc.js' })
-      end,
-    }),
-    require('null-ls').builtins.diagnostics.trail_space.with({ disabled_filetypes = { 'NvimTree' } }),
-    require('null-ls').builtins.formatting.eslint_d.with({
-      condition = function(utils)
-        return utils.root_has_file({ '.eslintrc.js' })
-      end,
-    }),
-    require('null-ls').builtins.formatting.prettierd,
-  },
-})
-
-require('mason-null-ls').setup({ automatic_installation = true })
 
 -- Emmet
 require("lspconfig").emmet_ls.setup({
