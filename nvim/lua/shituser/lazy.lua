@@ -13,10 +13,6 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  ui = {
-    check = false
-  },
-
   -- Цветова схема
   {
     "folke/tokyonight.nvim",
@@ -235,6 +231,5 @@ require("lazy").setup({
     config = function()
       require("tailwindcss-colors").setup()
     end
-  }
-
+  },
 })
