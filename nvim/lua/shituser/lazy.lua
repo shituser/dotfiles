@@ -19,7 +19,6 @@ require("lazy").setup({
     priority = 1000,
     config = function()
       require('shituser/plugins/tokyonight')
-      vim.cmd.colorscheme("tokyonight-storm")
     end
   },
 
@@ -232,4 +231,8 @@ require("lazy").setup({
       require("tailwindcss-colors").setup()
     end
   },
-})
+}, {
+    ui = {
+      backdrop = 100
+    }
+  })

@@ -31,5 +31,26 @@ require('tokyonight').setup({
 
     hl.NvimTreeIndentMarker = { fg = c.bg_highlight }
     hl.NvimTreeOpenedFile = { fg = c.fg, bold = true }
+
+
+    -- Lazy UI
+    local prompt = "#2d3149"
+    hl.LazyNormal = { bg = prompt, fg = c.fg }
+    hl.LazyBorder = { bg = prompt, fg = prompt }
+    hl.NormalFloat = { bg = prompt, fg = c.fg }
+
+    hl.LazyH1 = { fg = c.cyan, bold = true }
+    hl.LazyH2 = { fg = c.blue }
+    hl.LazyButton = { bg = c.bg_highlight, fg = c.fg }
+    hl.LazyButtonActive = { bg = c.bg_highlight, fg = c.fg, bold = true }
+    hl.LazyComment = { fg = c.comment, italic = true }
+    hl.LazyProgressDone = { fg = c.green }
+    hl.LazyProgressTodo = { fg = c.bg_highlight }
+
+    hl.FloatShadow = { bg = "NONE" }
+    hl.FloatShadowThrough = { bg = "NONE" }
+
   end,
 })
+
+vim.cmd.colorscheme('tokyonight-storm')

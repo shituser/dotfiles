@@ -12,26 +12,16 @@ end
 
 local lspconfig = require('lspconfig')
 
+local servers = { 'ts_ls', 'jsonls', 'eslint' }
+for _, lsp in pairs(servers) do
+  lspconfig[lsp].setup {
+    on_attach = on_attach,
+    capabilites = capabilities,
+  }
+end
+
 lspconfig.intelephense.setup({ on_attach = on_attach, capabilities = capabilities })
 lspconfig.elixirls.setup({ on_attach = on_attach, capabilities = capabilities })
-lspconfig.volar.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = { 'javascript', 'vue' },
-})
-lspconfig.ts_ls.setup({
-  init_options = {
-    plugins = {
-      {
-        name = "@vue/typescript-plugin",
-        location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
-        languages = { "javascript", "typescript", "vue" },
-      },
-    },
-  },
-  filetypes = { "javascript", "typescript", "vue" },
-  capabilities = capabilities,
-})
 lspconfig.jsonls.setup({
   capabilities = capabilities,
   settings = {
@@ -42,12 +32,17 @@ lspconfig.jsonls.setup({
 })
 lspconfig.emmet_ls.setup({
   capabilities = capabilities,
-  filetypes = { "css", "html", "blade", "javascript", "less", "sass", "scss", "svelte", "vue" },
+  filetypes = { "css", "html", "blade", "less", "sass", "scss", "svelte", "vue" },
 })
 lspconfig.tailwindcss.setup({
   on_attach = on_attach,
   capabilities = capabilities,
   filetypes = { "css", "html", "blade", "svelte", "vue" },
+})
+lspconfig.vue_ls.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = { "javascript", "vue" },
 })
 
 -- Keymaps
