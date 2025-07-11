@@ -20,7 +20,21 @@ for _, lsp in pairs(servers) do
   }
 end
 
-lspconfig.intelephense.setup({ on_attach = on_attach, capabilities = capabilities })
+lspconfig.cssls.setup {
+  on_attach = on_attach,
+  capabilities = capabilities
+}
+
+lspconfig.html.setup {
+  on_attach = on_attach,
+  capabilities = capabilities
+}
+
+lspconfig.intelephense.setup({
+  on_attach = on_attach,
+  capabilities = capabilities,
+  filetypes = { "php", "blade" },
+})
 lspconfig.elixirls.setup({ on_attach = on_attach, capabilities = capabilities })
 lspconfig.jsonls.setup({
   capabilities = capabilities,

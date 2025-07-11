@@ -230,7 +230,7 @@ require("lazy").setup({
     config = function()
       require("tailwindcss-colors").setup()
     end
-  },
+  }
 }, {
     ui = {
       backdrop = 100
