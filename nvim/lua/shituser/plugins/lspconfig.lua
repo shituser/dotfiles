@@ -1,53 +1,29 @@
-require('mason').setup()
-require('mason-lspconfig').setup({ automatic_installation = true })
-
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 
-local on_attach = function(client, bufnr)
-  require("tailwindcss-colors").buf_attach(bufnr)
-  client.server_capabilities.documentFormattingProvider = false
-  client.server_capabilities.documentRangeFormattingProvider = false
-end
+require('mason').setup({
+  ui = {
+    backdrop = 100
+  }
+})
+require('mason-lspconfig').setup({
+  ensure_installed = { "tailwindcss", "emmet_ls", "intelephense", "jsonls", "elixirls", "ts_ls" },
+  automatic_installation = true,
+  handlers = {
+    function(server_name)
+      require("lspconfig")[server_name].setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+      })
+    end,
+  }
+})
 
-local lspconfig = require('lspconfig')
-
-lspconfig.intelephense.setup({ on_attach = on_attach, capabilities = capabilities })
-lspconfig.elixirls.setup({ on_attach = on_attach, capabilities = capabilities })
-lspconfig.volar.setup({
-  on_attach = on_attach,
+require('lspconfig').emmet_ls.setup({
   capabilities = capabilities,
-  filetypes = { 'javascript', 'vue' },
-})
-lspconfig.ts_ls.setup({
-  init_options = {
-    plugins = {
-      {
-        name = "@vue/typescript-plugin",
-        location = "/usr/local/lib/node_modules/@vue/typescript-plugin",
-        languages = { "javascript", "typescript", "vue" },
-      },
-    },
+  filetypes = {
+    'html', 'css', 'blade', 'blade', 'heex'
   },
-  filetypes = { "javascript", "typescript", "vue" },
-  capabilities = capabilities,
-})
-lspconfig.jsonls.setup({
-  capabilities = capabilities,
-  settings = {
-    json = {
-      schemas = require('schemastore').json.schemas(),
-    },
-  },
-})
-lspconfig.emmet_ls.setup({
-  capabilities = capabilities,
-  filetypes = { "css", "html", "blade", "javascript", "less", "sass", "scss", "svelte", "vue" },
-})
-lspconfig.tailwindcss.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = { "css", "html", "blade", "svelte", "vue" },
 })
 
 -- Keymaps
