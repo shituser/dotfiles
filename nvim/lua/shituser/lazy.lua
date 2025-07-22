@@ -175,11 +175,25 @@ require("lazy").setup({
     dependencies = {
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
+      "WhoIsSethDaniel/mason-tool-installer.nvim",
       "b0o/schemastore.nvim",
     },
     config = function()
       require('shituser/plugins/lspconfig')
     end
+  },
+
+  {
+    "nvimtools/none-ls.nvim",
+    event = { "BufReadPre", "BufNewFile" },
+    config = function()
+      local null_ls = require("null-ls")
+      null_ls.setup({
+        sources = {
+          null_ls.builtins.formatting.prettierd,
+        },
+      })
+    end,
   },
 
   {

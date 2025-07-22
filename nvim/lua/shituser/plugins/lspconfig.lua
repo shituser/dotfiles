@@ -6,6 +6,13 @@ require('mason').setup({
     backdrop = 100
   }
 })
+require('mason-tool-installer').setup({
+  ensure_installed = {
+    "prettierd",
+  },
+  auto_update = false,
+  run_on_start = true,
+})
 require('mason-lspconfig').setup({
   ensure_installed = {
     "tailwindcss",
