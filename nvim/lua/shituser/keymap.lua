@@ -35,3 +35,4 @@ vim.keymap.set('n', '<C-Right>', ':vertical resize +2<CR>')
 
 -- Call Lazy
 vim.keymap.set('n', '<Leader>l', ':Lazy<CR>')
+vim.keymap.set('n', '<Leader>m', ':Mason<CR>')
