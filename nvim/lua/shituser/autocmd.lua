@@ -28,6 +28,13 @@ autocmd('BufWritePre', {
 augroup('setIndent', { clear = true })
 autocmd('Filetype', {
   group = 'setIndent',
-  pattern = { 'xml', 'html', 'xhtml', 'css', 'scss', 'javascript', 'typescript', 'yaml', 'lua', 'blade' },
+  pattern = { 'xml', 'html', 'xhtml', 'css', 'scss', 'javascript', 'typescript', 'yaml', 'lua', 'blade', 'vue' },
   command = 'setlocal shiftwidth=2 tabstop=2'
 })
+
+  vim.api.nvim_create_autocmd("BufWritePre", {
+    callback = function()
+      vim.lsp.buf.format({ async = false })
+    end,
+  })
+
