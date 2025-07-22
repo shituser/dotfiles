@@ -176,7 +176,6 @@ require("lazy").setup({
       "williamboman/mason.nvim",
       "williamboman/mason-lspconfig.nvim",
       "b0o/schemastore.nvim",
-      "themaxmarchuk/tailwindcss-colors.nvim",
     },
     config = function()
       require('shituser/plugins/lspconfig')
@@ -232,7 +231,7 @@ require("lazy").setup({
     end
   }
 }, {
-    ui = {
-      backdrop = 100
-    }
-  })
+  ui = {
+    backdrop = 100
+  }
+})

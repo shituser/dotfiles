@@ -1,62 +1,38 @@
-require('mason').setup()
-require('mason-lspconfig').setup({ automatic_installation = true })
-
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 capabilities.textDocument.completion.completionItem.snippetSupport = true
 
-local on_attach = function(client, bufnr)
-  require("tailwindcss-colors").buf_attach(bufnr)
-  client.server_capabilities.documentFormattingProvider = false
-  client.server_capabilities.documentRangeFormattingProvider = false
-end
-
-local lspconfig = require('lspconfig')
-
-local servers = { 'ts_ls', 'jsonls', 'eslint' }
-for _, lsp in pairs(servers) do
-  lspconfig[lsp].setup {
-    on_attach = on_attach,
-    capabilites = capabilities,
+require('mason').setup({
+  ui = {
+    backdrop = 100
   }
-end
-
-lspconfig.cssls.setup {
-  on_attach = on_attach,
-  capabilities = capabilities
-}
-
-lspconfig.html.setup {
-  on_attach = on_attach,
-  capabilities = capabilities
-}
-
-lspconfig.intelephense.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = { "php", "blade" },
 })
-lspconfig.elixirls.setup({ on_attach = on_attach, capabilities = capabilities })
-lspconfig.jsonls.setup({
-  capabilities = capabilities,
-  settings = {
-    json = {
-      schemas = require('schemastore').json.schemas(),
-    },
+require('mason-lspconfig').setup({
+  ensure_installed = {
+    "tailwindcss",
+    "emmet_ls",
+    "intelephense",
+    "jsonls",
+    "elixirls",
+    -- "ts_ls"
+    "vtsls",
+    "vue_ls"
   },
+  automatic_installation = true,
+  handlers = {
+    function(server_name)
+      require("lspconfig")[server_name].setup({
+        capabilities = capabilities,
+        on_attach = on_attach,
+      })
+    end,
+  }
 })
-lspconfig.emmet_ls.setup({
+
+require('lspconfig').emmet_ls.setup({
   capabilities = capabilities,
-  filetypes = { "css", "html", "blade", "less", "sass", "scss", "svelte", "vue" },
-})
-lspconfig.tailwindcss.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = { "css", "html", "blade", "svelte", "vue" },
-})
-lspconfig.vue_ls.setup({
-  on_attach = on_attach,
-  capabilities = capabilities,
-  filetypes = { "javascript", "vue" },
+  filetypes = {
+    'html', 'css', 'blade', 'blade', 'heex'
+  },
 })
 
 -- Keymaps
