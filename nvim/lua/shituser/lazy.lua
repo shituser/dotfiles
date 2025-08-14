@@ -14,11 +14,20 @@ vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
   -- Цветова схема
+  -- {
+  --   "folke/tokyonight.nvim",
+  --   priority = 1000,
+  --   config = function()
+  --     require('shituser/plugins/tokyonight')
+  --   end
+  -- },
+
   {
-    "folke/tokyonight.nvim",
+    "catppuccin/nvim",
+    name = "catppuccin",
     priority = 1000,
     config = function()
-      require('shituser/plugins/tokyonight')
+      require('shituser.plugins.catppuccin')
     end
   },
 

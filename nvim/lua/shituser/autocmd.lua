@@ -1,14 +1,6 @@
 local augroup = vim.api.nvim_create_augroup   -- Create/get autocommand group
 local autocmd = vim.api.nvim_create_autocmd   -- Create autocommand
 
--- Recompile Packer on file write
-vim.cmd([[
-augroup packer_user_config
-autocmd!
-autocmd BufWritePost plugins.lua source <afile> | PackerCompile
-augroup end
-]])
-
 -- Highlight TODO's
 vim.cmd([[
 augroup vim_todo
@@ -32,9 +24,15 @@ autocmd('Filetype', {
   command = 'setlocal shiftwidth=2 tabstop=2'
 })
 
-  vim.api.nvim_create_autocmd("BufWritePre", {
-    callback = function()
-      vim.lsp.buf.format({ async = false })
-    end,
-  })
+vim.api.nvim_create_autocmd("BufWritePre", {
+  callback = function()
+    -- save cursor position
+    local pos = vim.api.nvim_win_get_cursor(0)
 
+    -- format sync (blocking)
+    vim.lsp.buf.format({ async = false })
+
+    -- restore cursor position
+    pcall(vim.api.nvim_win_set_cursor, 0, pos)
+  end,
+})
