@@ -49,18 +49,12 @@
 -- })
 local separator = { "▏" }
 
--- Взимаме lualine цветовете директно от Catppuccin
-local catppuccin_theme = require("lualine.themes.catppuccin")
--- Ако искаш да пипнеш нюансите за macchiato, можеш тук:
--- catppuccin_theme.normal.a.bg = "#color"
--- catppuccin_theme.insert.a.bg = "#color"
-
 require("lualine").setup({
   options = {
     section_separators = { left = "", right = "" },
     component_separators = "",
     globalstatus = true,
-    theme = catppuccin_theme, -- 👈 вместо ръчното theme = { normal = ... }
+    theme = "catppuccin-nvim",
   },
   sections = {
     lualine_a = {
@@ -96,4 +90,3 @@ require("lualine").setup({
     },
   },
 })
-
