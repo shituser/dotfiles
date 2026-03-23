@@ -26,7 +26,15 @@ vim.opt.splitright = true
 --vim.opt.scrolloff = 8 -- Keeps cursor "in the center" when scrolling
 --vim.opt.sidescrolloff = 8
 
-vim.opt.clipboard = 'unnamedplus' -- Use Linux system clipboard
+local has_system_clipboard =
+  (vim.fn.executable('wl-copy') == 1 and vim.fn.executable('wl-paste') == 1)
+  or vim.fn.executable('xclip') == 1
+  or vim.fn.executable('xsel') == 1
+  or (vim.fn.executable('pbcopy') == 1 and vim.fn.executable('pbpaste') == 1)
+
+if has_system_clipboard then
+  vim.opt.clipboard = 'unnamedplus'
+end
 
 vim.opt.confirm = true -- ask for confirmation instead of erroring
 vim.opt.undofile = true -- persistent undo

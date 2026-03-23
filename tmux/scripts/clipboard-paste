@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if command -v wl-paste >/dev/null 2>&1; then
+  wl-paste --no-newline | tmux load-buffer -
+  tmux paste-buffer
+  exit 0
+fi
+
+if command -v xclip >/dev/null 2>&1; then
+  xclip -selection clipboard -o | tmux load-buffer -
+  tmux paste-buffer
+  exit 0
+fi
+
+if command -v xsel >/dev/null 2>&1; then
+  xsel --clipboard --output | tmux load-buffer -
+  tmux paste-buffer
+  exit 0
+fi
+
+if command -v pbpaste >/dev/null 2>&1; then
+  pbpaste | tmux load-buffer -
+  tmux paste-buffer
+  exit 0
+fi
+
+# Avoid Kitty's terminal-driven clipboard protocol from inside tmux. On this
+# setup it is the common crash path for tmux server copy/paste operations.
+if [ -z "${TMUX:-}" ] && command -v kitten >/dev/null 2>&1; then
+  kitten clipboard --get-clipboard | tmux load-buffer -
+  tmux paste-buffer
+  exit 0
+fi
+
+tmux display-message "No supported clipboard paste tool found (install wl-clipboard, xclip, or xsel)"
