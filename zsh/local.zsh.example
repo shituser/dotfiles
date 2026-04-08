@@ -1,0 +1,9 @@
+# local.zsh — machine-specific and private config
+# Copy this file to local.zsh (gitignored) and add your personal overrides.
+#
+# Good candidates for this file:
+#   - SSH aliases with real hostnames/usernames
+#   - API keys or tokens (prefer ~/.config/* files, but this works too)
+#   - Work-specific PATH entries or env vars
+
+# alias myserver="ssh user@hostname -p 22"

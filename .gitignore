@@ -1,1 +1,8 @@
 dotfiles.legacy
+
+# Machine-specific platform symlinks created by install.sh
+kitty/platform.conf
+zsh/platform.zsh
+
+# Local private overrides (SSH aliases, tokens, etc.) — never commit
+zsh/local.zsh
