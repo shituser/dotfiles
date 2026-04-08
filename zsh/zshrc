@@ -102,54 +102,21 @@ source ~/.config/bw_session
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-#alias charles="ssh root@45.63.114.171"
-alias winston="ssh nikola@167.71.137.135"
-alias rusko="ssh cvetu3am@cvetiata.net -p 1022"
 alias vi="nvim"
 alias tmux="tmux -2"
 alias art="php artisan"
 alias ll="ls -alFh"
 alias phpunit="vendor/bin/phpunit"
-alias kitty="~/.local/kitty.app/bin/kitty"
+alias kitty="~/.local/kitty.app/bin/kitty --start-as=fullscreen"
 alias gpp="git push ecvete && git push ecvetia && git push podaribuket && git push bgflorist"
 
 PATH="$HOME/.config/composer/vendor/bin:$PATH"
-export GOROOT=/usr/local/go
-export GOPATH=$HOME/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH:$HOME/.dotfiles/tmux/scripts
-export PATH=$PATH:$HOME/.local/lib/python3.10/site-packages
-export PATH=$PATH:$HOME/.local/bin
+export PATH="$PATH:$HOME/Public/dotfiles/tmux/scripts"
 
-# Fly.IO exports
-export FLYCTL_INSTALL="/home/nikola/.fly"
-export PATH="$FLYCTL_INSTALL/bin:$PATH"
+# Platform-specific PATH and env (Go, Python, Fly.io, etc.)
+[[ -f "$(dirname "$(realpath ~/.zshrc)")/platform.zsh" ]] && \
+  source "$(dirname "$(realpath ~/.zshrc)")/platform.zsh"
 
-# Shell-GPT integration ZSH v0.1
-_sgpt_zsh() {
-if [[ -n "$BUFFER" ]]; then
-    _sgpt_prev_cmd=$BUFFER
-    BUFFER+="⌛"
-    zle -I && zle redisplay
-    BUFFER=$(sgpt --shell <<< "$_sgpt_prev_cmd")
-    zle end-of-line
-fi
-}
-zle -N _sgpt_zsh
-bindkey ^l _sgpt_zsh
-# Shell-GPT integration ZSH v0.1
-alias ai="sgpt"
-# Shell-GPT integration ZSH v0.1
-_sgpt_zsh() {
-if [[ -n "$BUFFER" ]]; then
-    _sgpt_prev_cmd=$BUFFER
-    BUFFER+="⌛"
-    zle -I && zle redisplay
-    BUFFER=$(sgpt --shell <<< "$_sgpt_prev_cmd")
-    zle end-of-line
-fi
-}
-zle -N _sgpt_zsh
-bindkey ^l _sgpt_zsh
-# Shell-GPT integration ZSH v0.1
-source ~/.openai_key
-alias aicom="git diff | sgpt 'Generate git commit message, for my changes'"
+# Local overrides — gitignored, never committed (SSH aliases, personal tokens, etc.)
+[[ -f "$(dirname "$(realpath ~/.zshrc)")/local.zsh" ]] && \
+  source "$(dirname "$(realpath ~/.zshrc)")/local.zsh"

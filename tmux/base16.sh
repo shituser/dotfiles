@@ -54,9 +54,8 @@ tm_host="#[fg=$base0E,bg=$base00]  #h "
 tm_battery="#[fg=$base0F,bg=$base00] ♥ #(pmset -g batt | awk '{print $3}' | sed 's/;//' | tail -n+2)"
 tm_spotify="#[fg=$base0A,bg=$base00]   #{spotify_status_full}"
 tm_cpu="#[fg=$base0B,bg=$base00]󰻠 #{cpu_percentage}CPU 󰍛 #{ram_percentage}RAM"
+tm_now_playing="#[fg=$base0A,bg=$base00] #(#{@conf_dir}/scripts/now-playing) "
 
-# OSX
-# set -g status-right "$tm_battery $tm_date $tm_host"
-
-# Linux
-set -g status-right "$tm_spotify $tm_date $tm_host"
+if-shell "uname | grep -q Darwin" \
+  {set -g status-right "$tm_battery $tm_date $tm_host"} \
+  {set -g status-right "$tm_now_playing $tm_date $tm_cpu $tm_host"}
