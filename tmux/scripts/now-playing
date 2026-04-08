@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+MAX_LENGTH=60
+ICON=""
+
+find_player() {
+  local player
+
+  while IFS= read -r player; do
+    [[ -z "$player" ]] && continue
+    if playerctl --player="$player" status 2>/dev/null | grep -qx 'Playing'; then
+      printf '%s\n' "$player"
+      return 0
+    fi
+  done < <(playerctl -l 2>/dev/null | grep -Ei 'spotify|deezer' || true)
+
+  while IFS= read -r player; do
+    [[ -z "$player" ]] && continue
+    printf '%s\n' "$player"
+    return 0
+  done < <(playerctl -l 2>/dev/null | grep -Ei 'spotify|deezer' || true)
+
+  return 1
+}
+
+trim_text() {
+  local text="$1"
+
+  if (( ${#text} > MAX_LENGTH )); then
+    printf '%s...' "${text:0:MAX_LENGTH-3}"
+  else
+    printf '%s' "$text"
+  fi
+}
+
+main() {
+  local player status artist title output
+
+  command -v playerctl >/dev/null 2>&1 || exit 0
+
+  player="$(find_player)" || exit 0
+  status="$(playerctl --player="$player" status 2>/dev/null || true)"
+  [[ "$status" == "Playing" || "$status" == "Paused" ]] || exit 0
+
+  artist="$(playerctl --player="$player" metadata artist 2>/dev/null || true)"
+  title="$(playerctl --player="$player" metadata title 2>/dev/null || true)"
+  [[ -n "$artist" || -n "$title" ]] || exit 0
+
+  if [[ -n "$artist" && -n "$title" ]]; then
+    output="$artist - $title"
+  else
+    output="${artist:-$title}"
+  fi
+
+  output="$(trim_text "$output")"
+  printf '%s %s' "$ICON" "$output"
+}
+
+main "$@"

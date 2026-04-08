@@ -2,19 +2,27 @@
 
 set -euo pipefail
 
-if command -v wl-paste >/dev/null 2>&1; then
+has_wayland_clipboard() {
+  [ -n "${WAYLAND_DISPLAY:-}" ] && [ -n "${XDG_RUNTIME_DIR:-}" ] && command -v wl-paste >/dev/null 2>&1
+}
+
+has_x11_clipboard() {
+  [ -n "${DISPLAY:-}" ]
+}
+
+if has_wayland_clipboard; then
   wl-paste --no-newline | tmux load-buffer -
   tmux paste-buffer
   exit 0
 fi
 
-if command -v xclip >/dev/null 2>&1; then
+if has_x11_clipboard && command -v xclip >/dev/null 2>&1; then
   xclip -selection clipboard -o | tmux load-buffer -
   tmux paste-buffer
   exit 0
 fi
 
-if command -v xsel >/dev/null 2>&1; then
+if has_x11_clipboard && command -v xsel >/dev/null 2>&1; then
   xsel --clipboard --output | tmux load-buffer -
   tmux paste-buffer
   exit 0

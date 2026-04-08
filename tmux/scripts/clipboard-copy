@@ -8,17 +8,25 @@ else
   input_cmd=(cat)
 fi
 
-if command -v wl-copy >/dev/null 2>&1; then
+has_wayland_clipboard() {
+  [ -n "${WAYLAND_DISPLAY:-}" ] && [ -n "${XDG_RUNTIME_DIR:-}" ] && command -v wl-copy >/dev/null 2>&1
+}
+
+has_x11_clipboard() {
+  [ -n "${DISPLAY:-}" ]
+}
+
+if has_wayland_clipboard; then
   "${input_cmd[@]}" | wl-copy
   exit 0
 fi
 
-if command -v xclip >/dev/null 2>&1; then
+if has_x11_clipboard && command -v xclip >/dev/null 2>&1; then
   "${input_cmd[@]}" | xclip -selection clipboard
   exit 0
 fi
 
-if command -v xsel >/dev/null 2>&1; then
+if has_x11_clipboard && command -v xsel >/dev/null 2>&1; then
   "${input_cmd[@]}" | xsel --clipboard --input
   exit 0
 fi

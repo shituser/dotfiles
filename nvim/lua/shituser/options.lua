@@ -26,13 +26,71 @@ vim.opt.splitright = true
 --vim.opt.scrolloff = 8 -- Keeps cursor "in the center" when scrolling
 --vim.opt.sidescrolloff = 8
 
-local has_system_clipboard =
-  (vim.fn.executable('wl-copy') == 1 and vim.fn.executable('wl-paste') == 1)
-  or vim.fn.executable('xclip') == 1
-  or vim.fn.executable('xsel') == 1
-  or (vim.fn.executable('pbcopy') == 1 and vim.fn.executable('pbpaste') == 1)
+local function env_has(name)
+  return vim.env[name] ~= nil and vim.env[name] ~= ''
+end
 
-if has_system_clipboard then
+local clipboard_provider
+
+if env_has('WAYLAND_DISPLAY') and env_has('XDG_RUNTIME_DIR')
+  and vim.fn.executable('wl-copy') == 1 and vim.fn.executable('wl-paste') == 1 then
+  clipboard_provider = {
+    name = 'wl-clipboard',
+    copy = {
+      -- `--foreground` keeps wl-copy attached to the terminal session and can
+      -- stall normal delete/change operations when `clipboard=unnamedplus`.
+      ['+'] = 'wl-copy --type text/plain',
+      ['*'] = 'wl-copy --primary --type text/plain',
+    },
+    paste = {
+      ['+'] = 'wl-paste --no-newline',
+      ['*'] = 'wl-paste --primary --no-newline',
+    },
+    cache_enabled = 0,
+  }
+elseif env_has('DISPLAY') and vim.fn.executable('xclip') == 1 then
+  clipboard_provider = {
+    name = 'xclip',
+    copy = {
+      ['+'] = 'xclip -quiet -selection clipboard',
+      ['*'] = 'xclip -quiet -selection primary',
+    },
+    paste = {
+      ['+'] = 'xclip -o -selection clipboard',
+      ['*'] = 'xclip -o -selection primary',
+    },
+    cache_enabled = 0,
+  }
+elseif env_has('DISPLAY') and vim.fn.executable('xsel') == 1 then
+  clipboard_provider = {
+    name = 'xsel',
+    copy = {
+      ['+'] = 'xsel --clipboard --input',
+      ['*'] = 'xsel --primary --input',
+    },
+    paste = {
+      ['+'] = 'xsel --clipboard --output',
+      ['*'] = 'xsel --primary --output',
+    },
+    cache_enabled = 0,
+  }
+elseif vim.fn.executable('pbcopy') == 1 and vim.fn.executable('pbpaste') == 1 then
+  clipboard_provider = {
+    name = 'pbcopy',
+    copy = {
+      ['+'] = 'pbcopy',
+      ['*'] = 'pbcopy',
+    },
+    paste = {
+      ['+'] = 'pbpaste',
+      ['*'] = 'pbpaste',
+    },
+    cache_enabled = 0,
+  }
+end
+
+if clipboard_provider then
+  vim.g.clipboard = clipboard_provider
   vim.opt.clipboard = 'unnamedplus'
 end
 
