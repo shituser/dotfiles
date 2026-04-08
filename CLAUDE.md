@@ -1,179 +1,164 @@
 # Dotfiles Context
 
-Last reviewed: 2026-03-23
+Last reviewed: 2026-04-05
 Repo path: `/home/nikola/Public/dotfiles`
-
-## Post-Review Updates
-
-Current in-progress clipboard work:
-
-- `tmux/tmux.conf` now disables tmux's own terminal clipboard protocol with `set -s set-clipboard off`
-- `tmux/tmux.conf` routes copy/paste through repo-local helper scripts
-- `tmux/scripts/clipboard-copy` and `tmux/scripts/clipboard-paste` now intentionally avoid `kitten clipboard` while running inside tmux
-- The tmux helpers prefer concrete OS clipboard tools: `wl-copy`/`wl-paste`, `xclip`, `xsel`, then `pbcopy`/`pbpaste`
-- If no concrete clipboard tool is installed, tmux shows a status message instead of attempting Kitty terminal clipboard transport
-- `kitty/kitty.conf` enables clipboard integration with `clipboard_control write-clipboard write-primary read-clipboard read-primary`
-- `nvim/lua/shituser/options.lua` only enables `clipboard=unnamedplus` when a concrete system clipboard backend exists
-
-Observed risk and likely root cause:
-
-- `wl-copy` and `wl-paste` are now installed (`wl-clipboard 2.0.0`)
-- On the earlier failing setup, `kitten` existed but `wl-copy`, `wl-paste`, `xclip`, `xsel`, `pbcopy`, and `pbpaste` were not installed
-- That meant Kitty terminal clipboard transport was the only available path
-- Using that path from inside tmux is the likely tmux server crash vector for both tmux copy/paste bindings and Neovim clipboard usage
-- With `wl-clipboard` installed, tmux helper scripts should now use Wayland clipboard directly and Neovim should enable `clipboard=unnamedplus` on startup
 
 ## Overview
 
-This repo contains personal config for:
+This repo contains the active personal setup for:
 
 - `zsh`
 - `tmux`
 - `kitty`
 - `neovim`
 
-The working tree was clean when this context file was generated.
+Stale config was removed on 2026-04-05:
 
-There are also two likely-non-active areas:
-
-- `dotfiles.legacy/`: older archived configs
-- `composer/`: only contains `composer/.htaccess`
+- archived `dotfiles.legacy/`
+- inactive Packer-based Neovim config
+- old Tokyonight Neovim module
+- `kitty/kitty.conf.bak`
 
 ## Top-Level Layout
 
-- `install.sh`: bootstrap script that symlinks configs into `$HOME`
-- `zsh/zshrc`: main shell config
+- `install.sh`: bootstrap script — installs tools and symlinks configs into `$HOME`
+- `zsh/zshrc`: main shell config (platform-agnostic)
+- `zsh/linux.zsh`: Linux-specific PATH exports (Go, Python, Fly.io, .local/bin)
+- `zsh/macos.zsh`: macOS-specific PATH exports (Homebrew, Go, Fly.io)
+- `zsh/platform.zsh`: symlink created by `install.sh` → points to `linux.zsh` or `macos.zsh`
+- `zsh/local.zsh`: gitignored machine-local overrides (SSH aliases, tokens, etc.)
+- `zsh/local.zsh.example`: template for `local.zsh`
 - `tmux/tmux.conf`: tmux config
-- `tmux/base16.sh`: tmux theme loader
-- `tmux/scripts/tmux-spotify`: helper script on PATH
-- `kitty/kitty.conf`: terminal config
+- `tmux/base16.sh`: tmux theme loader (uses `if-shell` for OS-specific status bar)
+- `tmux/scripts/clipboard-copy`: tmux-to-system clipboard helper
+- `tmux/scripts/clipboard-paste`: system-to-tmux clipboard helper
+- `tmux/scripts/now-playing`: playerctl-based music status for tmux status bar
+- `kitty/kitty.conf`: terminal config (platform-agnostic; includes `platform.conf`)
+- `kitty/linux.conf`: Linux font/display settings (Wayland, NF font names, size 13)
+- `kitty/macos.conf`: macOS font settings (Nerd Font Mono names, size 16)
+- `kitty/platform.conf`: symlink created by `install.sh` → points to `linux.conf` or `macos.conf`
 - `kitty/current-theme.conf`: active Kitty theme include
+- `kitty/Ayu Mirage.conf`: alternate Kitty theme file kept in repo
 - `nvim/init.lua`: Neovim entrypoint
 - `nvim/lua/shituser/*`: active Neovim Lua config
-- `nvim/after/lsp/vtsls.lua`: per-server LSP override for Vue/TypeScript
+- `nvim/after/lsp/vtsls.lua`: per-server Vue/TypeScript override
 - `nvim/lazy-lock.json`: Lazy plugin lockfile
-- `dotfiles.legacy/*`: old Vim/tmux/zsh setup kept for reference
+- `composer/.htaccess`: unrelated leftover; not part of the active terminal/editor setup
 
 ## Bootstrap / Install Behavior
 
-`install.sh` does the following:
+`install.sh` is a full bootstrap script. It detects the OS (`uname`) and:
 
-1. Removes existing `$HOME/.zshrc` and symlinks `zsh/zshrc`
-2. Removes existing `$HOME/.config/kitty` and symlinks `kitty/`
-3. Removes existing `$HOME/.tmux.conf`
-4. Removes `~/.tmux/plugins/tpm`
-5. Clones `tmux-plugins/tpm`
-6. Symlinks `tmux/tmux.conf` to `$HOME/.tmux.conf`
-7. Removes existing `$HOME/.config/nvim`
-8. Symlinks `nvim/`
+1. **Installs packages** (OS-dispatched):
+   - Linux (apt/Ubuntu): zsh, tmux, git, curl, ripgrep, fd-find, playerctl, wl-clipboard, xclip, php-cli, composer; Neovim from `ppa:neovim-ppa/unstable`; Kitty from official installer; JetBrainsMono Nerd Font from nerd-fonts releases; Go from golang.org
+   - macOS (Homebrew): tmux, neovim, zsh, git, ripgrep, fd, go; Kitty and JetBrainsMono Nerd Font via cask; Composer via curl installer
+2. Installs NVM (idempotent — skips if `~/.nvm` exists)
+3. Installs Oh My Zsh (idempotent — skips if `~/.oh-my-zsh` exists)
+4. Creates platform symlinks: `kitty/platform.conf` → `kitty/{os}.conf`, `zsh/platform.zsh` → `zsh/{os}.zsh`
+5. Symlinks configs into `$HOME` (destructive: uses `rm -f`/`rm -rf` on existing targets)
+6. Clones TPM to `~/.tmux/plugins/tpm`
 
-Important note:
+Notes:
 
-- The script is destructive for existing local config paths because it uses `rm -rf`
-- It assumes network access for cloning TPM
-- It does not install Oh My Zsh, NVM, Mason tools, Nerd Fonts, Kitty, or Neovim dependencies
+- The config symlinking step is intentionally destructive
+- Network access is required for package installation and TPM clone
+- Mason-managed LSP tools and language runtimes beyond Go/Node are not installed by this script
+- After running: `chsh -s $(which zsh)` if zsh is not already the default shell; launch tmux and press `prefix + I` to install plugins
 
 ## Zsh
 
-Main file: `zsh/zshrc`
+Main file: `zsh/zshrc` (platform-agnostic)
+Platform file: `zsh/platform.zsh` (symlink → `linux.zsh` or `macos.zsh`)
 
-Current behavior:
+Behavior:
 
 - Loads NVM from `~/.nvm`
 - Uses Oh My Zsh from `~/.oh-my-zsh`
 - Theme: `robbyrussell`
-- Plugins: only `git`
+- Plugin set: `git`
 - Sources `~/.config/bw_session`
-- Sources `~/.openai_key`
+- Adds Composer vendor bin and `dotfiles/tmux/scripts` to `PATH`
+- Sources `zsh/platform.zsh` at the end (resolved via `realpath ~/.zshrc`)
 
-Aliases of note:
+Platform files add:
+- Linux: `GOROOT=/usr/local/go`, `GOPATH`, Go/Python `.local/lib`/`.local/bin`, Fly.io
+- macOS: Homebrew (`/opt/homebrew/bin`), `GOPATH`, Fly.io
+
+`local.zsh` (gitignored) is sourced last — use it for SSH aliases, tokens, work-specific config.
+
+Aliases of note (in `zshrc`):
 
 - `vi="nvim"`
 - `tmux="tmux -2"`
 - `art="php artisan"`
 - `phpunit="vendor/bin/phpunit"`
-- `kitty="~/.local/kitty.app/bin/kitty"`
-- `ai="sgpt"`
-- `aicom="git diff | sgpt 'Generate git commit message, for my changes'"`
-- SSH aliases for specific hosts: `winston`, `rusko`
-- `gpp`: pushes to several named git remotes
+- `kitty="~/.local/kitty.app/bin/kitty --start-as=fullscreen"`
+- `gpp`: push to several named remotes
 
-PATH additions:
+Known quirks:
 
-- `$HOME/.config/composer/vendor/bin`
-- Go: `/usr/local/go`, `$HOME/go/bin`
-- `$HOME/.dotfiles/tmux/scripts`
-- `$HOME/.local/lib/python3.10/site-packages`
-- `$HOME/.local/bin`
-- Fly.io: `$HOME/.fly/bin`
-
-Notable quirks:
-
-- Shell-GPT integration block is duplicated
-- `PATH` references `$HOME/.dotfiles/tmux/scripts`, but this repo currently lives at `/home/nikola/Public/dotfiles`
-- The shell config depends on local secret/session files that are not in this repo
+- The shell config depends on `~/.config/bw_session` (sourced unconditionally; silent failure on missing)
+- SSH aliases with real hostnames live in `local.zsh`, not tracked in the repo
 
 ## Tmux
 
 Main file: `tmux/tmux.conf`
 
-Current behavior:
+Behavior:
 
-- Default shell is `/bin/zsh`
-- Prefix is remapped from `Ctrl-b` to `Ctrl-a`
+- Default shell: `/bin/zsh`
+- Prefix remapped from `Ctrl-b` to `Ctrl-a`
 - Window and pane indexes start at `1`
-- Mouse support is enabled
-- Vi-style copy mode is enabled
-- History limit is `20000`
-- Windows are renumbered automatically
-- Aggressive resize is enabled
+- Mouse support enabled
+- Vi-style copy mode enabled
+- History limit: `20000`
+- Renumbers windows automatically
+- Aggressive resize enabled
+- Dynamically resolves the tmux config directory and sources `tmux/base16.sh`
 
-Key bindings of note:
+Clipboard setup:
 
-- `prefix + r`: reload config
-- `prefix + |` / `prefix + -`: split using current pane path
-- `prefix + h/j/k/l`: move between panes
-- `prefix + H/J/K/L`: resize panes
-- `prefix + =`: tiled layout
-- `prefix + y`: synchronize panes
-- `prefix + C-h` / `prefix + C-l`: previous/next window
+- `set -s set-clipboard off` disables tmux terminal clipboard passthrough
+- Copy and paste are routed through repo-local helper scripts
+- Helpers prefer `wl-copy`/`wl-paste`, then `xclip`, `xsel`, then `pbcopy`/`pbpaste`
+- Helpers intentionally avoid Kitty clipboard transport while running inside tmux
 
-Clipboard integration:
+Status bar:
 
-- Uses `reattach-to-user-namespace pbcopy/pbpaste`
-- This is macOS-oriented and may not work on Linux without replacement
+- `base16.sh` uses `if-shell "uname | grep -q Darwin"` to choose the right `status-right`
+- Linux: `now-playing`, date, CPU/RAM, hostname
+- macOS: battery (`pmset`), date, hostname
 
-Theme/plugins:
+TPM plugins:
 
-- Dynamically resolves the config directory and sources `tmux/base16.sh`
-- TPM plugins:
-  - `tmux-plugins/tpm`
-  - `tmux-plugins/tmux-resurrect`
-  - `pwittchen/tmux-plugin-spotify`
+- `tmux-plugins/tpm`
+- `tmux-plugins/tmux-resurrect`
+- `pwittchen/tmux-plugin-spotify`
+- `tmux-plugins/tmux-cpu`
 
 ## Kitty
 
-Main file: `kitty/kitty.conf`
+Main file: `kitty/kitty.conf` (platform-agnostic)
+Platform file: `kitty/platform.conf` (symlink → `linux.conf` or `macos.conf`)
 
-Current behavior:
+Behavior (common):
 
-- Uses JetBrainsMono Nerd Font variants on Linux
-- Font size: `13`
-- Window decorations hidden
-- Initial size: `2560x1440`
-- Line height increased to `200%`
-- Block cursor, no cursor blink
+- `adjust_line_height 200%`
+- Block cursor with no blink
 - Audio bell disabled
 - Window padding width `5`
-- Theme is included from `kitty/current-theme.conf`
+- Clipboard integration enabled
+- Active theme include: `kitty/current-theme.conf`
 
-Active theme:
+Linux platform (`kitty/linux.conf`):
 
-- Catppuccin Macchiato
+- JetBrainsMono NF font family, size `13`
+- `linux_display_server wayland`
+- Fullscreen startup, hidden window decorations
 
-Extra file:
+macOS platform (`kitty/macos.conf`):
 
-- `kitty/kitty.conf.bak` exists as a backup copy
+- JetBrainsMono Nerd Font Mono family, size `16`
 
 ## Neovim
 
@@ -181,211 +166,60 @@ Entrypoint:
 
 - `nvim/init.lua`
 
-Active modules loaded at startup:
+Active startup modules:
 
 - `shituser.options`
 - `shituser.keymap`
 - `shituser.autocmd`
 - `shituser.lazy`
 
-Important distinction:
+Core behavior:
 
-- `nvim/lua/shituser/lazy.lua` is the active plugin manager setup
-- `nvim/lua/shituser/plugins.lua` is an older Packer-based config and is not loaded by `init.lua`
-
-### Core Editor Defaults
-
-From `nvim/lua/shituser/options.lua`:
-
-- 4-space default indentation
+- Default indentation: 4 spaces
 - Relative line numbers
 - Mouse enabled
-- Spellcheck enabled
-- Languages: `en_us,bg`
+- Spellcheck enabled for `en_us,bg`
 - Case-insensitive search with smartcase
 - No wrapping
 - Persistent undo enabled
 - Backups enabled
-- Clipboard uses `unnamedplus`
 - Signcolumn fixed to `yes:2`
 - GUI colors enabled
+- Clipboard is enabled only when a concrete system clipboard backend is available
 
-Autocommands from `nvim/lua/shituser/autocmd.lua`:
+Autocommands:
 
-- Highlights TODO/FIXME/NOTE-style comments
-- Trims trailing whitespace on save
-- Sets 2-space indentation for web/Lua-related filetypes
-- Runs `vim.lsp.buf.format({ async = false })` on every save and restores cursor position
+- Highlight TODO/FIXME/NOTE-style comments
+- Trim trailing whitespace on save
+- Use 2-space indentation for web/Lua-related filetypes
+- Run synchronous LSP formatting on save and restore cursor position
 
-Keymaps from `nvim/lua/shituser/keymap.lua`:
+Plugin management:
 
-- Leader: space
-- `<Leader>l`: open Lazy
-- `<Leader>m`: open Mason
-- `<Leader>ev`: edit init file
-- `<Leader><space>`: clear search highlighting
-- `<C-s>`: save
-- `<C-h/j/k/l>`: move between splits
-- `<C-Up/Down/Left/Right>`: resize splits
-- Insert helpers: `;;` and `,,` append punctuation at line end
+- Active manager: `lazy.nvim`
+- Main theme: Catppuccin Macchiato
+- LSP stack uses Mason, mason-lspconfig, mason-tool-installer, and `none-ls`
+- Main language focus appears to be PHP, Vue, TypeScript, Tailwind, Blade, Lua, and Elixir
 
-### Plugin Manager State
+## Current Risks
 
-Active manager:
+- `install.sh` config symlinking step is intentionally destructive (no backup)
+- `zsh/zshrc` unconditionally sources `~/.config/bw_session` (fails silently if missing on a new machine)
+- `nvim/lua/shituser/autocmd.lua` formats on every save synchronously, which can block or fail on buffers without a suitable formatter
+- `kitty/platform.conf` and `zsh/platform.zsh` are gitignored symlinks — they must exist before kitty/zsh will work; `install.sh` creates them
 
-- `folke/lazy.nvim`
+## Notes for Claude Code
 
-Lockfile:
+This file (`CLAUDE.md`) is automatically loaded by Claude Code at the start of every session. Keep it current when making structural changes to the repo.
 
-- `nvim/lazy-lock.json`
+## Current Working Tree Notes
 
-The repo still contains an older Packer config:
+The repo already had local in-progress edits in these active files during this review:
 
-- `nvim/lua/shituser/plugins.lua`
-
-That older file appears stale and includes references not present in the active runtime, including a missing `require('shituser/plugins/tsblade')`.
-
-### Active Neovim Plugins
-
-Key active plugin groups from `nvim/lua/shituser/lazy.lua`:
-
-- Theme: `catppuccin/nvim`
-- Telescope and extensions
-- `nvim-tree`
-- `lualine`
-- `gitsigns`
-- `floaterm`
-- Treesitter + textobjects
-- LSP stack with Mason
-- `none-ls` for formatting through `prettierd`
-- `nvim-cmp` + LuaSnip
-- `phpactor`
-- `centerpad.nvim`
-- `tabular`
-- `tailwindcss-colors.nvim`
-- Several tpope/Vim utility plugins
-
-Theme status:
-
-- Active colorscheme is Catppuccin Macchiato
-- `tokyonight.lua` still exists but is not currently active
-
-### LSP / Formatting
-
-From `nvim/lua/shituser/plugins/lspconfig.lua`:
-
-Managed servers:
-
-- `tailwindcss`
-- `emmet_ls`
-- `intelephense`
-- `jsonls`
-- `elixirls`
-- `vtsls`
-- `vue_ls`
-
-Extra tooling:
-
-- Mason installs `prettierd`
-- `none-ls` uses `prettierd` for formatting web-related filetypes, including `blade`
-
-LSP/UI keymaps:
-
-- `gd`: definitions through Telescope
-- `gi`: implementations
-- `gr`: references
-- `ga`: code actions
-- `gf`: format
-- `K`: hover
-- `<Leader>rn`: rename
-- `<Leader>d`, `[d`, `]d`: diagnostics
-- `<Leader>lr`: restart LSP
-
-Vue/TypeScript detail:
-
-- `nvim/after/lsp/vtsls.lua` configures the Vue TypeScript plugin from the Mason-installed Vue language server path
-
-Operational implication:
-
-- The Neovim setup expects local external tools such as `git`, `make`, `composer`, language servers installed via Mason, and likely Node/npm support for some language tooling
-
-### Telescope / Tree / UI Notes
-
-Telescope:
-
-- Hidden files shown in `find_files`
-- `.git/` ignored
-- `fzf` and `live_grep_args` extensions are loaded
-
-Nvim-tree:
-
-- Git ignored files are still shown
-- Hides `.ide.php` and `.git`
-- `<Leader>n` toggles/focuses current file in tree
-- Auto-quits Neovim if NvimTree is the last remaining window
-
-Lualine:
-
-- Uses Catppuccin theme
-- Shows mode, git info, diagnostics, LSP client count, file info, cursor position
-
-## Legacy Archive
-
-`dotfiles.legacy/` appears to be an archived pre-Lua or older-generation setup:
-
-- `dotfiles.legacy/nvim/init.vim`
-- old colorschemes and UltiSnips
-- old tmux config/theme files
-- old zsh config
-
-Treat this directory as reference material, not current source of truth, unless explicitly reviving something from it.
-
-## External Dependencies / Assumptions
-
-This repo assumes the environment already has most of the following:
-
-- `zsh`
-- Oh My Zsh
-- `nvim`
-- `kitty`
-- `tmux`
-- `git`
-- Nerd Font matching the Kitty/tmux/Neovim glyph usage
-- `reattach-to-user-namespace` if tmux clipboard config is kept as-is
-- NVM / Node.js
-- Go
-- `sgpt`
-- Composer / PHP toolchain
-- Mason-managed LSP servers and tools
-
-## Mismatches And Risks To Remember
-
-- `install.sh` deletes existing config targets before linking
-- `zsh/zshrc` still references `$HOME/.dotfiles/tmux/scripts`, which does not match this repo location
-- `zsh/zshrc` contains duplicated Shell-GPT setup
-- tmux clipboard commands are macOS-specific
-- The repo contains both active Lazy-based Neovim config and stale Packer-era config
-- `nvim/lua/shituser/plugins.lua` should not be treated as authoritative unless the startup flow changes
-
-## Source Of Truth For Future Work
-
-When modifying this repo later, prefer these files first:
-
-- `install.sh`
-- `zsh/zshrc`
-- `tmux/tmux.conf`
 - `kitty/kitty.conf`
-- `kitty/current-theme.conf`
-- `nvim/init.lua`
-- `nvim/lua/shituser/lazy.lua`
 - `nvim/lua/shituser/options.lua`
-- `nvim/lua/shituser/keymap.lua`
-- `nvim/lua/shituser/autocmd.lua`
-- `nvim/lua/shituser/plugins/*.lua`
-- `nvim/after/lsp/vtsls.lua`
-
-Treat these as secondary/stale unless proven otherwise:
-
-- `dotfiles.legacy/**`
-- `nvim/lua/shituser/plugins.lua`
-- `kitty/kitty.conf.bak`
+- `tmux/base16.sh`
+- `tmux/scripts/clipboard-copy`
+- `tmux/scripts/clipboard-paste`
+- `tmux/tmux.conf`
+- `zsh/zshrc`
