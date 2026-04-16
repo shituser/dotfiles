@@ -59,3 +59,4 @@ tm_now_playing="#[fg=$base0A,bg=$base00] #(#{@conf_dir}/scripts/now-playing) "
 if-shell "uname | grep -q Darwin" \
   {set -g status-right "$tm_battery $tm_date $tm_host"} \
   {set -g status-right "$tm_now_playing $tm_date $tm_cpu $tm_host"}
+
