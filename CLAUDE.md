@@ -1,6 +1,6 @@
 # Dotfiles Context
 
-Last reviewed: 2026-04-05
+Last reviewed: 2026-04-16
 Repo path: `/home/nikola/Public/dotfiles`
 
 ## Overview
@@ -22,7 +22,9 @@ Stale config was removed on 2026-04-05:
 ## Top-Level Layout
 
 - `install.sh`: bootstrap script — installs tools and symlinks configs into `$HOME`
+- `.asdfrc`: asdf config (currently enables legacy version-file support for `.nvmrc`)
 - `zsh/zshrc`: main shell config (platform-agnostic)
+- `zsh/asdf.zsh`: asdf shell init loaded by `zshrc`
 - `zsh/linux.zsh`: Linux-specific PATH exports (Go, Python, Fly.io, .local/bin)
 - `zsh/macos.zsh`: macOS-specific PATH exports (Homebrew, Go, Fly.io)
 - `zsh/platform.zsh`: symlink created by `install.sh` → points to `linux.zsh` or `macos.zsh`
@@ -50,12 +52,12 @@ Stale config was removed on 2026-04-05:
 `install.sh` is a full bootstrap script. It detects the OS (`uname`) and:
 
 1. **Installs packages** (OS-dispatched):
-   - Linux (apt/Ubuntu): zsh, tmux, git, curl, ripgrep, fd-find, playerctl, wl-clipboard, xclip, php-cli, composer; Neovim from `ppa:neovim-ppa/unstable`; Kitty from official installer; JetBrainsMono Nerd Font from nerd-fonts releases; Go from golang.org
+   - Linux (apt/Ubuntu): zsh, tmux, git, curl, ripgrep, fd-find, playerctl, wl-clipboard, xclip, php-cli, composer, and build deps for asdf-managed Erlang/Elixir/Node/PHP; Neovim from `ppa:neovim-ppa/unstable`; Kitty from official installer; JetBrainsMono Nerd Font from nerd-fonts releases; Go from golang.org
    - macOS (Homebrew): tmux, neovim, zsh, git, ripgrep, fd, go; Kitty and JetBrainsMono Nerd Font via cask; Composer via curl installer
-2. Installs NVM (idempotent — skips if `~/.nvm` exists)
+2. Installs asdf to `~/.asdf` (idempotent — skips if present)
 3. Installs Oh My Zsh (idempotent — skips if `~/.oh-my-zsh` exists)
 4. Creates platform symlinks: `kitty/platform.conf` → `kitty/{os}.conf`, `zsh/platform.zsh` → `zsh/{os}.zsh`
-5. Symlinks configs into `$HOME` (destructive: uses `rm -f`/`rm -rf` on existing targets)
+5. Symlinks configs into `$HOME` (destructive: uses `rm -f`/`rm -rf` on existing targets), including `~/.asdfrc`
 6. Clones TPM to `~/.tmux/plugins/tpm`
 
 Notes:
@@ -72,7 +74,7 @@ Platform file: `zsh/platform.zsh` (symlink → `linux.zsh` or `macos.zsh`)
 
 Behavior:
 
-- Loads NVM from `~/.nvm`
+- Loads asdf from `~/.asdf` via `zsh/asdf.zsh`
 - Uses Oh My Zsh from `~/.oh-my-zsh`
 - Theme: `robbyrussell`
 - Plugin set: `git`
@@ -98,6 +100,7 @@ Aliases of note (in `zshrc`):
 Known quirks:
 
 - The shell config depends on `~/.config/bw_session` (sourced unconditionally; silent failure on missing)
+- `~/.asdfrc` is symlinked from the repo and currently enables `legacy_version_file = yes` for smoother Node migration from `.nvmrc`
 - SSH aliases with real hostnames live in `local.zsh`, not tracked in the repo
 
 ## Tmux

@@ -1,6 +1,3 @@
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -70,6 +67,10 @@ COMPLETION_WAITING_DOTS="true"
 plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
+
+# Shared runtime manager
+[[ -f "$(dirname "$(realpath ~/.zshrc)")/asdf.zsh" ]] && \
+  source "$(dirname "$(realpath ~/.zshrc)")/asdf.zsh"
 
 # BitWarden session
 source ~/.config/bw_session

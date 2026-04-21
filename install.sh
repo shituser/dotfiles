@@ -36,9 +36,25 @@ install_packages_linux() {
   sudo apt-get update -q
   sudo apt-get install -y \
     zsh tmux git curl wget \
-    ripgrep fd-find \
+    ripgrep fd-find unzip zip \
     playerctl wl-clipboard xclip \
-    php-cli composer
+    php-cli composer \
+    build-essential autoconf automake gawk gpg dirmngr m4 \
+    libncurses-dev libgl1-mesa-dev libglu1-mesa-dev libpng-dev libssh-dev \
+    unixodbc-dev xsltproc fop libxml2-utils openjdk-17-jdk \
+    libssl-dev zlib1g-dev libyaml-dev libxslt1-dev libffi-dev \
+    libgdbm-dev libgdbm-compat-dev libreadline-dev libsqlite3-dev \
+    libbz2-dev liblzma-dev libcurl4-openssl-dev libjpeg-dev libonig-dev \
+    libzip-dev pkg-config bison re2c libpq-dev
+
+  # Some Erlang GUI/doc packages vary by Ubuntu release, so install them only
+  # when the package names exist on the current machine.
+  local optional_pkg
+  for optional_pkg in libwxgtk3.2-dev libwxgtk-webview3.2-dev; do
+    if apt-cache show "$optional_pkg" >/dev/null 2>&1; then
+      sudo apt-get install -y "$optional_pkg"
+    fi
+  done
 
   # Neovim — use the unstable PPA for a recent release
   if ! have nvim; then
@@ -106,16 +122,51 @@ install_packages_darwin() {
 }
 
 # ---------------------------------------------------------------------------
-# NVM
+# asdf
 # ---------------------------------------------------------------------------
 
-install_nvm() {
-  if [[ ! -d "$HOME/.nvm" ]]; then
-    step "Installing NVM"
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+install_asdf() {
+  mkdir -p "$HOME/.local/bin" "$HOME/.asdf"
+
+  if ! [[ -x "$HOME/.local/bin/asdf" ]]; then
+    step "Installing asdf"
+    local tmp; tmp="$(mktemp -d)"
+    local version="v0.18.1"
+    local arch
+
+    case "$(uname -m)" in
+      x86_64) arch="amd64" ;;
+      aarch64|arm64) arch="arm64" ;;
+      *)
+        echo "Unsupported architecture for asdf binary install: $(uname -m)" >&2
+        exit 1
+        ;;
+    esac
+
+    curl -fL "https://github.com/asdf-vm/asdf/releases/download/${version}/asdf-${version}-${OS}-${arch}.tar.gz" \
+      -o "$tmp/asdf.tar.gz"
+    tar -xzf "$tmp/asdf.tar.gz" -C "$tmp"
+    install -m 0755 "$tmp/asdf" "$HOME/.local/bin/asdf"
+    rm -rf "$tmp"
   else
-    echo "nvm already present, skipping"
+    echo "asdf already present, skipping"
   fi
+}
+
+# ---------------------------------------------------------------------------
+# tree-sitter-cli (required by nvim-treesitter main branch to compile parsers)
+# ---------------------------------------------------------------------------
+
+install_tree_sitter() {
+  local asdf_bin="$HOME/.local/bin/asdf"
+  if "$asdf_bin" list tree-sitter 2>/dev/null | grep -q '[0-9]'; then
+    echo "tree-sitter already installed via asdf, skipping"
+    return
+  fi
+  step "Installing tree-sitter-cli (via asdf)"
+  "$asdf_bin" plugin add tree-sitter https://github.com/ivanvc/asdf-tree-sitter.git 2>/dev/null || true
+  "$asdf_bin" install tree-sitter latest
+  "$asdf_bin" set -u tree-sitter latest
 }
 
 # ---------------------------------------------------------------------------
@@ -148,6 +199,9 @@ link_platform() {
 
 link_configs() {
   step "Linking config files"
+
+  rm -f "$HOME/.asdfrc"
+  ln -s "$DOTFILES/.asdfrc" "$HOME/.asdfrc"
 
   rm -f "$HOME/.zshrc"
   ln -s "$DOTFILES/zsh/zshrc" "$HOME/.zshrc"
@@ -184,7 +238,8 @@ else
   install_packages_darwin
 fi
 
-install_nvm
+install_asdf
+install_tree_sitter
 install_oh_my_zsh
 link_platform
 link_configs
@@ -192,4 +247,5 @@ install_tpm
 
 step "Done. Open a new shell to pick up the changes."
 echo "  - Run 'chsh -s \$(which zsh)' if zsh is not your default shell."
+echo "  - Install runtimes with asdf, e.g. 'asdf plugin add erlang ...' and 'asdf plugin add elixir ...'."
 echo "  - Launch tmux and press prefix + I to install plugins."

@@ -169,10 +169,12 @@ require("lazy").setup({
 
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "main",
+    lazy = false,
     build = ":TSUpdate",
     dependencies = {
       "JoosepAlviste/nvim-ts-context-commentstring",
-      "nvim-treesitter/nvim-treesitter-textobjects"
+      { "nvim-treesitter/nvim-treesitter-textobjects", branch = "main" },
     },
     config = function()
       require('shituser/plugins/treesitter')
