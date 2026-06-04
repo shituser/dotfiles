@@ -10,7 +10,7 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 detect_os() {
   case "$(uname)" in
-    Darwin) echo "darwin" ;;
+    Darwin) echo "macos" ;;
     Linux)  echo "linux"  ;;
     *)      echo "unsupported" ;;
   esac
@@ -114,10 +114,13 @@ install_packages_darwin() {
   step "Installing JetBrainsMono Nerd Font"
   brew install --cask font-jetbrains-mono-nerd-font
 
+  # FIX: the previous version piped getcomposer.org's installer into `php`,
+  # but a fresh macOS has no PHP, so this aborted the whole script
+  # (set -euo pipefail). The Homebrew composer formula declares PHP as a
+  # dependency, so this installs PHP first and Composer second, in order.
   if ! have composer; then
-    step "Installing Composer"
-    curl -sS https://getcomposer.org/installer \
-      | php -- --install-dir=/usr/local/bin --filename=composer
+    step "Installing Composer (Homebrew formula pulls in PHP)"
+    brew install composer
   fi
 }
 
@@ -167,6 +170,22 @@ install_tree_sitter() {
   "$asdf_bin" plugin add tree-sitter https://github.com/ivanvc/asdf-tree-sitter.git 2>/dev/null || true
   "$asdf_bin" install tree-sitter latest
   "$asdf_bin" set -u tree-sitter latest
+}
+
+# ---------------------------------------------------------------------------
+# Node.js (required by Mason for npm-based LSPs: tailwindcss, vtsls, vue, etc.)
+# ---------------------------------------------------------------------------
+
+install_nodejs() {
+  local asdf_bin="$HOME/.local/bin/asdf"
+  if "$asdf_bin" list nodejs 2>/dev/null | grep -q '[0-9]'; then
+    echo "nodejs already installed via asdf, skipping"
+    return
+  fi
+  step "Installing Node.js LTS (via asdf)"
+  "$asdf_bin" plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git 2>/dev/null || true
+  "$asdf_bin" install nodejs lts
+  "$asdf_bin" set -u nodejs lts
 }
 
 # ---------------------------------------------------------------------------
@@ -231,6 +250,7 @@ install_tpm() {
 # ---------------------------------------------------------------------------
 
 step "Detected OS: $OS"
+step "Dotfiles directory: $DOTFILES"
 
 if [[ "$OS" == "linux" ]]; then
   install_packages_linux
@@ -240,6 +260,7 @@ fi
 
 install_asdf
 install_tree_sitter
+install_nodejs
 install_oh_my_zsh
 link_platform
 link_configs
