@@ -73,7 +73,7 @@ source $ZSH/oh-my-zsh.sh
   source "$(dirname "$(realpath ~/.zshrc)")/asdf.zsh"
 
 # BitWarden session
-source ~/.config/bw_session
+# source ~/.config/bw_session
 
 # User configuration
 
@@ -121,3 +121,10 @@ export PATH="$PATH:$HOME/Public/dotfiles/tmux/scripts"
 # Local overrides — gitignored, never committed (SSH aliases, personal tokens, etc.)
 [[ -f "$(dirname "$(realpath ~/.zshrc)")/local.zsh" ]] && \
   source "$(dirname "$(realpath ~/.zshrc)")/local.zsh"
+
+# Re-assert asdf shims at the front, AFTER platform.zsh/local.zsh have run.
+# platform.zsh prepends Homebrew (/opt/homebrew/bin) to PATH, which would
+# otherwise shadow asdf-managed runtimes (e.g. php) with their Homebrew
+# equivalents. typeset -U dedupes the now-duplicated entries.
+typeset -U path
+export PATH="$ASDF_DATA_DIR/shims:$HOME/.local/bin:$PATH"

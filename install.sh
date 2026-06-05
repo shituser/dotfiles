@@ -38,7 +38,6 @@ install_packages_linux() {
     zsh tmux git curl wget \
     ripgrep fd-find unzip zip \
     playerctl wl-clipboard xclip \
-    php-cli composer \
     build-essential autoconf automake gawk gpg dirmngr m4 \
     libncurses-dev libgl1-mesa-dev libglu1-mesa-dev libpng-dev libssh-dev \
     unixodbc-dev xsltproc fop libxml2-utils openjdk-17-jdk \
@@ -114,14 +113,15 @@ install_packages_darwin() {
   step "Installing JetBrainsMono Nerd Font"
   brew install --cask font-jetbrains-mono-nerd-font
 
-  # FIX: the previous version piped getcomposer.org's installer into `php`,
-  # but a fresh macOS has no PHP, so this aborted the whole script
-  # (set -euo pipefail). The Homebrew composer formula declares PHP as a
-  # dependency, so this installs PHP first and Composer second, in order.
-  if ! have composer; then
-    step "Installing Composer (Homebrew formula pulls in PHP)"
-    brew install composer
-  fi
+  # PHP itself is installed via asdf (see install_php), not Homebrew, so that
+  # dev versions are managed consistently and Composer comes bundled. These are
+  # the libraries asdf's source build needs at compile AND run time — they are
+  # marked on-request here so a later `brew autoremove` won't delete the dylibs
+  # the asdf-compiled PHP links against.
+  step "Installing PHP build/runtime dependencies"
+  brew install autoconf automake bison freetype gd gettext icu4c krb5 \
+    libedit libiconv libjpeg libpng libxml2 libzip openssl@3 pkg-config \
+    re2c zlib libpq gmp oniguruma libsodium
 }
 
 # ---------------------------------------------------------------------------
@@ -186,6 +186,38 @@ install_nodejs() {
   "$asdf_bin" plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git 2>/dev/null || true
   "$asdf_bin" install nodejs lts
   "$asdf_bin" set -u nodejs lts
+}
+
+# ---------------------------------------------------------------------------
+# PHP (via asdf — also bundles Composer, so no separate Composer install)
+# ---------------------------------------------------------------------------
+
+install_php() {
+  local asdf_bin="$HOME/.local/bin/asdf"
+  local php_version="8.3.31"
+  if "$asdf_bin" list php 2>/dev/null | grep -q "$php_version"; then
+    echo "php $php_version already installed via asdf, skipping"
+    return
+  fi
+  step "Installing PHP $php_version (via asdf — bundles Composer)"
+  "$asdf_bin" plugin add php https://github.com/asdf-community/asdf-php.git 2>/dev/null || true
+
+  # The asdf-php plugin hard-codes openssl@1.1, which is EOL and uninstallable
+  # on current Homebrew. Without OpenSSL, PHP builds with no `https` stream
+  # wrapper, which breaks both the PEAR step and the plugin's bundled-Composer
+  # download. Point the plugin at openssl@3 (fully supported by PHP 8.3).
+  if [[ "$OS" == "macos" ]]; then
+    sed -i '' 's/openssl@1\.1/openssl@3/g' "$HOME/.asdf/plugins/php/bin/install"
+    # Homebrew bison/libxml2 are keg-only but required to build PHP's parser.
+    export PATH="/opt/homebrew/opt/bison/bin:/opt/homebrew/opt/libxml2/bin:$PATH"
+  fi
+
+  # PEAR is deprecated and fetches itself over the network at install time,
+  # which aborts the build; skip it (Composer is the package manager).
+  export PHP_WITHOUT_PEAR=yes
+
+  "$asdf_bin" install php "$php_version"
+  "$asdf_bin" set -u php "$php_version"
 }
 
 # ---------------------------------------------------------------------------
@@ -261,6 +293,7 @@ fi
 install_asdf
 install_tree_sitter
 install_nodejs
+install_php
 install_oh_my_zsh
 link_platform
 link_configs
