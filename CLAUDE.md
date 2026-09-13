@@ -35,6 +35,7 @@ Stale config was removed on 2026-04-05:
 - `tmux/scripts/clipboard-copy`: tmux-to-system clipboard helper
 - `tmux/scripts/clipboard-paste`: system-to-tmux clipboard helper
 - `tmux/scripts/now-playing`: playerctl-based music status for tmux status bar
+- `tmux/scripts/claude-usage`: Claude Code usage stats for tmux status bar (session %, session reset time, weekly %, Fable weekly %)
 - `kitty/kitty.conf`: terminal config (platform-agnostic; includes `platform.conf`)
 - `kitty/linux.conf`: Linux font/display settings (Wayland, NF font names, size 13)
 - `kitty/macos.conf`: macOS font settings (Nerd Font Mono names, size 16)
@@ -45,6 +46,7 @@ Stale config was removed on 2026-04-05:
 - `nvim/lua/shituser/*`: active Neovim Lua config
 - `nvim/after/lsp/vtsls.lua`: per-server Vue/TypeScript override
 - `nvim/lazy-lock.json`: Lazy plugin lockfile
+- `macos/BulgarianPhoneticBDS.keylayout`: macOS-only Bulgarian phonetic (BDS) keyboard layout (installed manually, not by `install.sh`)
 - `composer/.htaccess`: unrelated leftover; not part of the active terminal/editor setup
 
 ## Bootstrap / Install Behavior
@@ -79,7 +81,8 @@ Behavior:
 - Theme: `robbyrussell`
 - Plugin set: `git`
 - Sources `~/.config/bw_session`
-- Adds Composer vendor bin and `dotfiles/tmux/scripts` to `PATH`
+- Adds Composer vendor bin and `dotfiles/tmux/scripts` to `PATH` (repo path resolved via `realpath ~/.zshrc`, since the repo lives at `~/Public/dotfiles` on Linux and `~/Sites/dotfiles` on macOS)
+- Loads the direnv zsh hook when `direnv` is installed (installed by `install.sh` on both platforms)
 - Sources `zsh/platform.zsh` at the end (resolved via `realpath ~/.zshrc`)
 
 Platform files add:
@@ -129,8 +132,8 @@ Clipboard setup:
 Status bar:
 
 - `base16.sh` uses `if-shell "uname | grep -q Darwin"` to choose the right `status-right`
-- Linux: `now-playing`, date, CPU/RAM, hostname
-- macOS: battery (`pmset`), date, hostname
+- Linux: `now-playing`, `claude-usage`, date, CPU/RAM, hostname
+- macOS: `claude-usage`, battery (`pmset`), date, hostname
 
 TPM plugins:
 

@@ -112,7 +112,9 @@ alias kitty="~/.local/kitty.app/bin/kitty --start-as=fullscreen"
 alias gpp="git push ecvete && git push ecvetia && git push podaribuket && git push bgflorist"
 
 PATH="$HOME/.config/composer/vendor/bin:$PATH"
-export PATH="$PATH:$HOME/Public/dotfiles/tmux/scripts"
+# Repo location differs per machine (~/Public/dotfiles on Linux, ~/Sites/dotfiles
+# on macOS) — resolve it through the ~/.zshrc symlink instead of hardcoding.
+export PATH="$PATH:$(dirname "$(dirname "$(realpath ~/.zshrc)")")/tmux/scripts"
 
 # Platform-specific PATH and env (Go, Python, Fly.io, etc.)
 [[ -f "$(dirname "$(realpath ~/.zshrc)")/platform.zsh" ]] && \
@@ -128,3 +130,6 @@ export PATH="$PATH:$HOME/Public/dotfiles/tmux/scripts"
 # equivalents. typeset -U dedupes the now-duplicated entries.
 typeset -U path
 export PATH="$ASDF_DATA_DIR/shims:$HOME/.local/bin:$PATH"
+
+# direnv — load per-directory env (.envrc); skip on machines without it
+command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
