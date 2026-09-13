@@ -5,6 +5,28 @@ set -euo pipefail
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------------------------------------------------------------------------
+# TODO: Laravel dev services — not yet handled by this script (install manually
+# for now). When implementing, add a function per service and call it from the
+# run sequence at the bottom; gate package names by $OS.
+#
+#   [ ] MySQL server   — macOS: `brew install mysql` (+ `brew services start mysql`)
+#                        Linux: `apt-get install -y mysql-server` (or mariadb-server)
+#   [ ] nginx          — macOS: `brew install nginx`
+#                        Linux: `apt-get install -y nginx`
+#   [ ] Redis          — macOS: `brew install redis` (+ `brew services start redis`)
+#                        Linux: `apt-get install -y redis-server`
+#   [ ] Memcached      — macOS: `brew install memcached` (+ `brew services start memcached`)
+#                        Linux: `apt-get install -y memcached`
+#
+# Notes:
+#   - PHP already builds with pdo_mysql/mysqli (mysqlnd), so no client lib needed.
+#   - For Redis/Memcached PHP extensions, install via pecl once PEAR is bundled
+#     (pecl install redis / pecl install memcached).
+#   - Decide MySQL vs MariaDB before wiring this up; they differ in package names
+#     and service handling.
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -36,7 +58,7 @@ install_packages_linux() {
   sudo apt-get update -q
   sudo apt-get install -y \
     zsh tmux git curl wget \
-    ripgrep fd-find unzip zip \
+    ripgrep fd-find unzip zip jq direnv \
     playerctl wl-clipboard xclip \
     build-essential autoconf automake gawk gpg dirmngr m4 \
     libncurses-dev libgl1-mesa-dev libglu1-mesa-dev libpng-dev libssh-dev \
@@ -44,7 +66,7 @@ install_packages_linux() {
     libssl-dev zlib1g-dev libyaml-dev libxslt1-dev libffi-dev \
     libgdbm-dev libgdbm-compat-dev libreadline-dev libsqlite3-dev \
     libbz2-dev liblzma-dev libcurl4-openssl-dev libjpeg-dev libonig-dev \
-    libzip-dev pkg-config bison re2c libpq-dev
+    libzip-dev pkg-config bison re2c libpq-dev inotify-tools
 
   # Some Erlang GUI/doc packages vary by Ubuntu release, so install them only
   # when the package names exist on the current machine.
@@ -103,7 +125,7 @@ install_packages_darwin() {
   fi
 
   step "Installing packages (Homebrew)"
-  brew install tmux neovim zsh git ripgrep fd go
+  brew install tmux neovim zsh git ripgrep fd go jq direnv
 
   if ! have kitty; then
     step "Installing Kitty"
@@ -122,6 +144,14 @@ install_packages_darwin() {
   brew install autoconf automake bison freetype gd gettext icu4c krb5 \
     libedit libiconv libjpeg libpng libxml2 libzip openssl@3 pkg-config \
     re2c zlib libpq gmp oniguruma libsodium
+
+  # Erlang/Elixir (asdf) build + runtime deps. openssl@3 and autoconf are
+  # already installed above. fop + libxslt build the docs; unixodbc enables the
+  # odbc app; fswatch powers Phoenix live reload. wxwidgets is for :observer —
+  # but note the Homebrew build lacks the --enable-compat30 ABI Erlang's wx
+  # needs, so the GUI observer is unusable; use observer_cli / LiveDashboard.
+  step "Installing Erlang/Elixir/Phoenix dependencies"
+  brew install wxwidgets fop libxslt unixodbc fswatch
 }
 
 # ---------------------------------------------------------------------------
@@ -212,12 +242,75 @@ install_php() {
     export PATH="/opt/homebrew/opt/bison/bin:/opt/homebrew/opt/libxml2/bin:$PATH"
   fi
 
-  # PEAR is deprecated and fetches itself over the network at install time,
-  # which aborts the build; skip it (Composer is the package manager).
-  export PHP_WITHOUT_PEAR=yes
+  # PEAR is left enabled (the plugin default) so that `pecl` is bundled — needed
+  # to install PHP extensions like redis/memcached/xdebug for Laravel. PEAR's
+  # installer fetches itself over https at build time, which is why the OpenSSL
+  # fix above is a hard prerequisite: without it this step fails.
 
   "$asdf_bin" install php "$php_version"
   "$asdf_bin" set -u php "$php_version"
+}
+
+# ---------------------------------------------------------------------------
+# Erlang/OTP (via asdf — built from source by kerl)
+# ---------------------------------------------------------------------------
+
+install_erlang() {
+  local asdf_bin="$HOME/.local/bin/asdf"
+  local erlang_version="28.5"
+  if "$asdf_bin" list erlang 2>/dev/null | grep -q "$erlang_version"; then
+    echo "erlang $erlang_version already installed via asdf, skipping"
+    return
+  fi
+  step "Installing Erlang/OTP $erlang_version (via asdf — compiles from source)"
+  "$asdf_bin" plugin add erlang https://github.com/asdf-vm/asdf-erlang.git 2>/dev/null || true
+
+  # macOS only: build crypto/ssl against Homebrew openssl@3 — the system
+  # LibreSSL headers won't produce a working crypto app (same rationale as the
+  # PHP build). Skip the Java jinterface bridge (--without-javac). On Linux the
+  # apt libssl-dev is found automatically, so no override is needed there.
+  if [[ "$OS" == "macos" ]]; then
+    export KERL_CONFIGURE_OPTIONS="--without-javac --with-ssl=$(brew --prefix openssl@3)"
+  fi
+
+  "$asdf_bin" install erlang "$erlang_version"
+  "$asdf_bin" set -u erlang "$erlang_version"
+}
+
+# ---------------------------------------------------------------------------
+# Elixir (via asdf — precompiled; version must match Erlang's OTP major)
+# ---------------------------------------------------------------------------
+
+install_elixir() {
+  local asdf_bin="$HOME/.local/bin/asdf"
+  # The -otp-NN suffix MUST match the OTP major installed in install_erlang.
+  local elixir_version="1.19.5-otp-28"
+  if "$asdf_bin" list elixir 2>/dev/null | grep -q "$elixir_version"; then
+    echo "elixir $elixir_version already installed via asdf, skipping"
+    return
+  fi
+  step "Installing Elixir $elixir_version (via asdf — precompiled)"
+  "$asdf_bin" plugin add elixir https://github.com/asdf-vm/asdf-elixir.git 2>/dev/null || true
+  "$asdf_bin" install elixir "$elixir_version"
+  "$asdf_bin" set -u elixir "$elixir_version"
+}
+
+# ---------------------------------------------------------------------------
+# Phoenix (Hex + rebar + the phx_new project generator)
+# ---------------------------------------------------------------------------
+
+install_phoenix() {
+  local asdf_bin="$HOME/.local/bin/asdf"
+  "$asdf_bin" reshim elixir
+  local mix="$HOME/.asdf/shims/mix"
+  if "$mix" archive 2>/dev/null | grep -q 'phx_new'; then
+    echo "Phoenix generator already installed, skipping"
+    return
+  fi
+  step "Installing Hex, rebar, and the Phoenix generator"
+  "$mix" local.hex --force
+  "$mix" local.rebar --force
+  "$mix" archive.install hex phx_new --force
 }
 
 # ---------------------------------------------------------------------------
@@ -294,6 +387,9 @@ install_asdf
 install_tree_sitter
 install_nodejs
 install_php
+install_erlang
+install_elixir
+install_phoenix
 install_oh_my_zsh
 link_platform
 link_configs
@@ -301,5 +397,5 @@ install_tpm
 
 step "Done. Open a new shell to pick up the changes."
 echo "  - Run 'chsh -s \$(which zsh)' if zsh is not your default shell."
-echo "  - Install runtimes with asdf, e.g. 'asdf plugin add erlang ...' and 'asdf plugin add elixir ...'."
+echo "  - Scaffold a Phoenix app with 'mix phx.new <name>'."
 echo "  - Launch tmux and press prefix + I to install plugins."
