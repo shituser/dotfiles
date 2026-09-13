@@ -108,7 +108,6 @@ alias tmux="tmux -2"
 alias art="php artisan"
 alias ll="ls -alFh"
 alias phpunit="vendor/bin/phpunit"
-alias kitty="~/.local/kitty.app/bin/kitty --start-as=fullscreen"
 alias gpp="git push ecvete && git push ecvetia && git push podaribuket && git push bgflorist"
 
 PATH="$HOME/.config/composer/vendor/bin:$PATH"
@@ -123,6 +122,11 @@ export PATH="$PATH:$(dirname "$(dirname "$(realpath ~/.zshrc)")")/tmux/scripts"
 # Local overrides — gitignored, never committed (SSH aliases, personal tokens, etc.)
 [[ -f "$(dirname "$(realpath ~/.zshrc)")/local.zsh" ]] && \
   source "$(dirname "$(realpath ~/.zshrc)")/local.zsh"
+
+# Optional tools — each block is a no-op on machines where the tool isn't installed
+[[ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]] && source "$HOME/google-cloud-sdk/path.zsh.inc"
+[[ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]] && source "$HOME/google-cloud-sdk/completion.zsh.inc"
+[[ -d "$HOME/.opencode/bin" ]] && export PATH="$HOME/.opencode/bin:$PATH"
 
 # Re-assert asdf shims at the front, AFTER platform.zsh/local.zsh have run.
 # platform.zsh prepends Homebrew (/opt/homebrew/bin) to PATH, which would

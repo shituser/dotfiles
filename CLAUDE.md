@@ -37,11 +37,12 @@ Stale config was removed on 2026-04-05:
 - `tmux/scripts/now-playing`: playerctl-based music status for tmux status bar
 - `tmux/scripts/claude-usage`: Claude Code usage stats for tmux status bar (session %, session reset time, weekly %, Fable weekly %)
 - `kitty/kitty.conf`: terminal config (platform-agnostic; includes `platform.conf`)
-- `kitty/linux.conf`: Linux font/display settings (Wayland, NF font names, size 13)
-- `kitty/macos.conf`: macOS font settings (Nerd Font Mono names, size 16)
+- `kitty/linux.conf`: Linux font settings (NF font names, size 13)
+- `kitty/macos.conf`: macOS font settings (Nerd Font Mono, size 15)
 - `kitty/platform.conf`: symlink created by `install.sh` → points to `linux.conf` or `macos.conf`
 - `kitty/current-theme.conf`: active Kitty theme include
 - `kitty/Ayu Mirage.conf`: alternate Kitty theme file kept in repo
+- `bin/kitty`: Linux wrapper that abstracts fullscreen startup differences across desktop environments
 - `nvim/init.lua`: Neovim entrypoint
 - `nvim/lua/shituser/*`: active Neovim Lua config
 - `nvim/after/lsp/vtsls.lua`: per-server Vue/TypeScript override
@@ -54,7 +55,7 @@ Stale config was removed on 2026-04-05:
 `install.sh` is a full bootstrap script. It detects the OS (`uname`) and:
 
 1. **Installs packages** (OS-dispatched):
-   - Linux (apt/Ubuntu): zsh, tmux, git, curl, ripgrep, fd-find, playerctl, wl-clipboard, xclip, php-cli, composer, and build deps for asdf-managed Erlang/Elixir/Node/PHP; Neovim from `ppa:neovim-ppa/unstable`; Kitty from official installer; JetBrainsMono Nerd Font from nerd-fonts releases; Go from golang.org
+   - Linux (apt/Ubuntu): zsh, tmux, git, curl, ripgrep, fd-find, playerctl, wl-clipboard, xclip, jq, direnv, inotify-tools, and build deps for asdf-managed Erlang/Elixir/Node/PHP; Neovim from the official stable release tarball into `/opt/nvim` (`/opt/nvim/bin` added to `PATH` in `zsh/linux.zsh`); Kitty from official installer; JetBrainsMono Nerd Font from nerd-fonts releases; Go from golang.org
    - macOS (Homebrew): tmux, neovim, zsh, git, ripgrep, fd, go; Kitty and JetBrainsMono Nerd Font via cask; Composer via curl installer
 2. Installs asdf to `~/.asdf` (idempotent — skips if present)
 3. Installs Oh My Zsh (idempotent — skips if `~/.oh-my-zsh` exists)
@@ -80,7 +81,8 @@ Behavior:
 - Uses Oh My Zsh from `~/.oh-my-zsh`
 - Theme: `robbyrussell`
 - Plugin set: `git`
-- Sources `~/.config/bw_session`
+- `~/.config/bw_session` sourcing is currently commented out
+- Optionally loads Google Cloud SDK and opencode when installed in `$HOME`
 - Adds Composer vendor bin and `dotfiles/tmux/scripts` to `PATH` (repo path resolved via `realpath ~/.zshrc`, since the repo lives at `~/Public/dotfiles` on Linux and `~/Sites/dotfiles` on macOS)
 - Loads the direnv zsh hook when `direnv` is installed (installed by `install.sh` on both platforms)
 - Sources `zsh/platform.zsh` at the end (resolved via `realpath ~/.zshrc`)
@@ -97,12 +99,10 @@ Aliases of note (in `zshrc`):
 - `tmux="tmux -2"`
 - `art="php artisan"`
 - `phpunit="vendor/bin/phpunit"`
-- `kitty="~/.local/kitty.app/bin/kitty --start-as=fullscreen"`
 - `gpp`: push to several named remotes
 
 Known quirks:
 
-- The shell config depends on `~/.config/bw_session` (sourced unconditionally; silent failure on missing)
 - `~/.asdfrc` is symlinked from the repo and currently enables `legacy_version_file = yes` for smoother Node migration from `.nvmrc`
 - SSH aliases with real hostnames live in `local.zsh`, not tracked in the repo
 
@@ -159,12 +159,12 @@ Behavior (common):
 Linux platform (`kitty/linux.conf`):
 
 - JetBrainsMono NF font family, size `13`
-- `linux_display_server wayland`
-- Fullscreen startup, hidden window decorations
+- Hidden window decorations; display server auto-detected
+- Fullscreen startup is handled by `bin/kitty` (symlinked to `~/.local/bin/kitty`), which uses `--start-as=fullscreen` or, on GNOME, a post-launch toggle
 
 macOS platform (`kitty/macos.conf`):
 
-- JetBrainsMono Nerd Font Mono family, size `16`
+- JetBrainsMono Nerd Font Mono family, size `15`
 
 ## Neovim
 
@@ -210,7 +210,6 @@ Plugin management:
 ## Current Risks
 
 - `install.sh` config symlinking step is intentionally destructive (no backup)
-- `zsh/zshrc` unconditionally sources `~/.config/bw_session` (fails silently if missing on a new machine)
 - `nvim/lua/shituser/autocmd.lua` formats on every save synchronously, which can block or fail on buffers without a suitable formatter
 - `kitty/platform.conf` and `zsh/platform.zsh` are gitignored symlinks — they must exist before kitty/zsh will work; `install.sh` creates them
 
