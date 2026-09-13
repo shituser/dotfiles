@@ -52,11 +52,12 @@ set -g status-left " 👽 $tm_session_name"
 tm_date="#[default,bg=$base00,fg=$base0C]  %d/%m/%Y 󰥔 %H:%M"
 tm_host="#[fg=$base0E,bg=$base00]  #h "
 tm_battery="#[fg=$base0F,bg=$base00] ♥ #(pmset -g batt | awk '{print $3}' | sed 's/;//' | tail -n+2)"
+tm_claude="#[fg=$base0D,bg=$base00] #(#{@conf_dir}/scripts/claude-usage)"
 tm_spotify="#[fg=$base0A,bg=$base00]   #{spotify_status_full}"
 tm_cpu="#[fg=$base0B,bg=$base00]󰻠 #{cpu_percentage}CPU 󰍛 #{ram_percentage}RAM"
 tm_now_playing="#[fg=$base0A,bg=$base00] #(#{@conf_dir}/scripts/now-playing) "
 
 if-shell "uname | grep -q Darwin" \
-  {set -g status-right "$tm_battery $tm_date $tm_host"} \
-  {set -g status-right "$tm_now_playing $tm_date $tm_cpu $tm_host"}
+  {set -g status-right "$tm_claude $tm_battery $tm_date $tm_host"} \
+  {set -g status-right "$tm_now_playing $tm_claude $tm_date $tm_cpu $tm_host"}
 

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}"
+CACHE_FILE="$CACHE_DIR/claude-usage.json"
+CACHE_TTL=300
+ICON="✳"
+
+is_darwin() {
+  [[ "$(uname)" == "Darwin" ]]
+}
+
+get_token() {
+  if is_darwin; then
+    security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null |
+      jq -r '.claudeAiOauth.accessToken // empty'
+  else
+    jq -r '.claudeAiOauth.accessToken // empty' "$HOME/.claude/.credentials.json" 2>/dev/null
+  fi
+}
+
+cache_age() {
+  local mtime
+  [[ -f "$CACHE_FILE" ]] || { printf '%s' 999999; return; }
+  if is_darwin; then
+    mtime="$(stat -f %m "$CACHE_FILE")"
+  else
+    mtime="$(stat -c %Y "$CACHE_FILE")"
+  fi
+  printf '%s' "$(( $(date +%s) - mtime ))"
+}
+
+refresh_cache() {
+  local token tmp
+
+  token="$(get_token)"
+  [[ -n "$token" ]] || return 1
+
+  tmp="$(mktemp)"
+  if curl -fsS --max-time 10 \
+      -H "Authorization: Bearer $token" \
+      -H "anthropic-beta: oauth-2025-04-20" \
+      "https://api.anthropic.com/api/oauth/usage" >"$tmp" 2>/dev/null &&
+      jq -e '.limits' "$tmp" >/dev/null 2>&1; then
+    mkdir -p "$CACHE_DIR"
+    mv "$tmp" "$CACHE_FILE"
+  else
+    rm -f "$tmp"
+    return 1
+  fi
+}
+
+reset_time() {
+  local iso="$1"
+
+  if is_darwin; then
+    date -r "$(date -j -u -f '%Y-%m-%dT%H:%M:%S' "${iso:0:19}" +%s)" +%H:%M
+  else
+    date -d "$iso" +%H:%M
+  fi
+}
+
+main() {
+  command -v jq >/dev/null 2>&1 || exit 0
+  command -v curl >/dev/null 2>&1 || exit 0
+
+  if (( $(cache_age) > CACHE_TTL )); then
+    refresh_cache || true
+  fi
+  [[ -f "$CACHE_FILE" ]] || exit 0
+
+  local session reset weekly fable output
+  IFS=$'\t' read -r session reset weekly fable < <(jq -r '
+    def pct(k): [.limits[] | select(.kind == k) | .percent][0] // "-";
+    [ pct("session"),
+      ([.limits[] | select(.kind == "session") | .resets_at][0] // "-"),
+      pct("weekly_all"),
+      ([.limits[] | select(.kind == "weekly_scoped" and .scope.model.display_name == "Fable") | .percent][0] // "-")
+    ] | @tsv' "$CACHE_FILE" 2>/dev/null) || exit 0
+
+  [[ -n "${session:-}" && "$session" != "-" ]] || exit 0
+
+  output="$ICON ${session}%"
+  if [[ "$reset" != "-" ]]; then
+    output+=" (↺$(reset_time "$reset"))"
+  fi
+  [[ "$weekly" != "-" ]] && output+=" W ${weekly}%"
+  [[ "$fable" != "-" ]] && output+=" F ${fable}%"
+
+  printf '%s' "$output"
+}
+
+main "$@"
