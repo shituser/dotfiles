@@ -146,6 +146,8 @@ Configs are split into platform-agnostic main files and OS-specific include file
 
 The symlinks (`kitty/platform.conf`, `zsh/platform.zsh`) are gitignored — they exist only on your machine.
 
+On Linux, `~/.local/bin/kitty` is a dotfiles-managed wrapper. It launches Kitty in fullscreen directly on environments that honor `--start-as=fullscreen`, and falls back to a post-launch fullscreen toggle on GNOME.
+
 ---
 
 ## Local overrides
@@ -178,9 +180,11 @@ tmux/
     now-playing          playerctl music status (Linux)
 kitty/
   kitty.conf             main terminal config
-  linux.conf             Linux fonts + Wayland settings
+  linux.conf             Linux fonts
   macos.conf             macOS fonts
   current-theme.conf     active color theme (Catppuccin Macchiato)
+bin/
+  kitty                  wrapper that normalizes fullscreen startup across desktop environments
 nvim/
   init.lua               entrypoint
   lua/shituser/          Lua config modules
@@ -214,4 +218,4 @@ nvim/
 
 - Font: JetBrainsMono Nerd Font
 - Theme: Catppuccin Macchiato
-- Wayland-first on Linux; fullscreen by default
+- Fullscreen by default on Linux (via `bin/kitty` wrapper)

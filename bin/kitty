@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+KITTY_BIN="${KITTY_REAL_BIN:-$HOME/.local/kitty.app/bin/kitty}"
+KITTEN_BIN="${KITTEN_REAL_BIN:-$HOME/.local/kitty.app/bin/kitten}"
+
+if [[ ! -x "$KITTY_BIN" ]]; then
+  echo "kitty wrapper: real kitty binary not found at $KITTY_BIN" >&2
+  exit 1
+fi
+
+if [[ ! -x "$KITTEN_BIN" ]]; then
+  echo "kitty wrapper: real kitten binary not found at $KITTEN_BIN" >&2
+  exit 1
+fi
+
+has_start_as_override() {
+  local arg next_is_override=0
+  for arg in "$@"; do
+    if (( next_is_override )); then
+      [[ "$arg" == start_as=* ]] && return 0
+      next_is_override=0
+      continue
+    fi
+
+    case "$arg" in
+      --start-as|--start-as=*)
+        return 0
+        ;;
+      -o|--override)
+        next_is_override=1
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+is_gnome() {
+  local current="${XDG_CURRENT_DESKTOP:-}"
+  local session="${DESKTOP_SESSION:-}"
+
+  [[ "$current" == *GNOME* || "$session" == *gnome* ]]
+}
+
+launch_gnome() {
+  local socket="unix:@dotfiles-kitty-${PPID}-${RANDOM}"
+  local tries=40
+
+  "$KITTY_BIN" \
+    --listen-on="$socket" \
+    -o allow_remote_control=socket-only \
+    "$@" &
+  local kitty_pid=$!
+
+  while (( tries > 0 )); do
+    if "$KITTEN_BIN" @ --to "$socket" ls >/dev/null 2>&1; then
+      break
+    fi
+
+    sleep 0.05
+    ((tries--))
+  done
+
+  if (( tries > 0 )); then
+    "$KITTEN_BIN" @ --to "$socket" resize-os-window --action toggle-fullscreen \
+      >/dev/null 2>&1 || true
+  fi
+
+  wait "$kitty_pid"
+}
+
+if [[ "$(uname)" != "Linux" ]] || has_start_as_override "$@"; then
+  exec "$KITTY_BIN" "$@"
+fi
+
+if is_gnome; then
+  launch_gnome "$@"
+else
+  exec "$KITTY_BIN" --start-as=fullscreen "$@"
+fi

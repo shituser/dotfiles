@@ -77,22 +77,30 @@ install_packages_linux() {
     fi
   done
 
-  # Neovim — use the unstable PPA for a recent release
+  # Neovim — official stable release tarball.
+  # The neovim-ppa/stable PPA has no builds for recent Ubuntu releases, and the
+  # unstable PPA ships nightly (0.x-dev) builds that have caused segfaults.
+  # /opt/nvim/bin is added to PATH in zsh/linux.zsh.
   if ! have nvim; then
-    step "Installing Neovim (PPA)"
-    sudo add-apt-repository -y ppa:neovim-ppa/unstable
-    sudo apt-get update -q
-    sudo apt-get install -y neovim
+    step "Installing Neovim (official stable release)"
+    local tmp; tmp="$(mktemp -d)"
+    curl -L "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.tar.gz" \
+      -o "$tmp/nvim.tar.gz"
+    sudo rm -rf /opt/nvim
+    sudo tar -C /opt -xzf "$tmp/nvim.tar.gz"
+    sudo mv /opt/nvim-linux-x86_64 /opt/nvim
+    rm -rf "$tmp"
   fi
 
   # Kitty — official installer
   if ! have kitty; then
     step "Installing Kitty"
     curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
-    mkdir -p ~/.local/bin
-    ln -sf ~/.local/kitty.app/bin/kitty ~/.local/bin/kitty
-    ln -sf ~/.local/kitty.app/bin/kitten ~/.local/bin/kitten
   fi
+
+  mkdir -p ~/.local/bin
+  ln -sf "$DOTFILES/bin/kitty" ~/.local/bin/kitty
+  ln -sf ~/.local/kitty.app/bin/kitten ~/.local/bin/kitten
 
   # Nerd Fonts — JetBrainsMono
   if ! fc-list | grep -qi "JetBrainsMono NF"; then
