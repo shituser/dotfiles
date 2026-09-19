@@ -209,10 +209,24 @@ Plugin management:
 - LSP stack uses Mason, mason-lspconfig, mason-tool-installer, and `none-ls`
 - Main language focus appears to be PHP, Vue, TypeScript, Tailwind, Blade, Lua, and Elixir
 
+## macOS Portability Traps
+
+The repo is shared by Linux (`~/Public/dotfiles`) and macOS (`~/Sites/dotfiles`), so anything sourced on both must survive BSD userland and macOS's bash 3.2. Traps that have bitten, or nearly bitten, a `git pull` onto the macOS machine:
+
+- **bash 3.2**: macOS still ships bash 3.2, where quoting inside `${var/pat/rep}` cannot be trusted to keep glob characters (`[`) literal. `tmux/scripts/status-centre` therefore inserts with `awk` `index`/`substr`, and passes strings via `ENVIRON` because `awk -v` interprets escape sequences.
+- **BSD vs GNU flags**: `stat -c` and `date -d` are GNU-only. `tmux/scripts/claude-usage` keeps them in its non-Darwin branch and uses `stat -f %m`, `date -j -f`, `date -r` on macOS. `install.sh` uses the BSD `sed -i ''` form, and only inside an `$OS == macos` guard.
+- **`status-centre` needs tmux 3.2+** for `align=absolute-centre`. On older tmux, or if the marker is missing from tmux's default `status-format[0]`, or if the `set` fails, it prepends the widget to `status-right` instead of silently showing nothing.
+- **`claude-usage` reads the macOS keychain** (`security find-generic-password -s "Claude Code-credentials" -w`), which may need a keychain prompt approved once. Run the script directly if the widget is blank.
+- **Kitty's font wizard rewrites `kitty/kitty.conf`**, appending a `BEGIN_KITTY_FONTS` block *after* `include platform.conf`, which then overrides the Linux fonts too. Font settings belong in `macos.conf` / `linux.conf`; delete any regenerated block from `kitty.conf`.
+- **PATH order**: `platform.zsh` prepends Homebrew, which would shadow asdf-managed runtimes (e.g. `php`), so `zshrc` re-asserts `$ASDF_DATA_DIR/shims` at the front afterwards.
+- **asdf-php and OpenSSL**: the plugin hard-codes the EOL `openssl@1.1`, so `install.sh` rewrites it to `openssl@3` on macOS. Without that, PHP builds with no `https` stream wrapper and both the PEAR step and the bundled-Composer download fail.
+- **Pulling with uncommitted work**: `git stash push -m wip && git pull --ff-only && git stash pop` — the stash stays recoverable if the pop conflicts. Expect conflicts in whichever files were edited on both machines.
+
 ## Current Risks
 
 - `install.sh` config symlinking step is intentionally destructive (no backup)
 - `nvim/lua/shituser/autocmd.lua` formats on every save synchronously, which can block or fail on buffers without a suitable formatter
+- `systemd/php83-asdf-fpm.service` is an untracked, never-installed draft; the Linux machine actually runs `/etc/systemd/system/php-fpm-asdf.service` (8.3.30) and `php-fpm-asdf74.service`, both with hardcoded paths and versions
 - `kitty/platform.conf` and `zsh/platform.zsh` are gitignored symlinks — they must exist before kitty/zsh will work; `install.sh` creates them
 
 ## Notes for Claude Code
@@ -221,12 +235,4 @@ This file (`CLAUDE.md`) is automatically loaded by Claude Code at the start of e
 
 ## Current Working Tree Notes
 
-The repo already had local in-progress edits in these active files during this review:
-
-- `kitty/kitty.conf`
-- `nvim/lua/shituser/options.lua`
-- `tmux/base16.sh`
-- `tmux/scripts/clipboard-copy`
-- `tmux/scripts/clipboard-paste`
-- `tmux/tmux.conf`
-- `zsh/zshrc`
+The working tree is clean as of 2026-09-19, apart from the untracked `systemd/` draft noted under Current Risks.
