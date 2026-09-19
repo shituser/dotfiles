@@ -58,6 +58,10 @@ tm_cpu="#[fg=$base0B,bg=$base00]󰻠 #{cpu_percentage}CPU 󰍛 #{ram_percentage}
 tm_now_playing="#[fg=$base0A,bg=$base00] #(#{@conf_dir}/scripts/now-playing) "
 
 if-shell "uname | grep -q Darwin" \
-  {set -g status-right "$tm_claude $tm_battery $tm_date $tm_host"} \
-  {set -g status-right "$tm_now_playing $tm_claude $tm_date $tm_cpu $tm_host"}
+  {set -g status-right "$tm_battery $tm_date $tm_host"} \
+  {set -g status-right "$tm_now_playing $tm_date $tm_cpu $tm_host"}
+
+# Claude usage sits in the middle of the bar (see scripts/status-centre)
+set -g @status-centre "$tm_claude"
+run '#{@conf_dir}/scripts/status-centre'
 

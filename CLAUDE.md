@@ -36,6 +36,7 @@ Stale config was removed on 2026-04-05:
 - `tmux/scripts/clipboard-paste`: system-to-tmux clipboard helper
 - `tmux/scripts/now-playing`: playerctl-based music status for tmux status bar
 - `tmux/scripts/claude-usage`: Claude Code usage stats for tmux status bar (session %, session reset time, weekly %, Fable weekly %)
+- `tmux/scripts/status-centre`: injects a centred section (from the `@status-centre` option) into the default tmux status line
 - `kitty/kitty.conf`: terminal config (platform-agnostic; includes `platform.conf`)
 - `kitty/linux.conf`: Linux font settings (NF font names, size 13)
 - `kitty/macos.conf`: macOS font settings (Nerd Font Mono, size 15)
@@ -132,8 +133,9 @@ Clipboard setup:
 Status bar:
 
 - `base16.sh` uses `if-shell "uname | grep -q Darwin"` to choose the right `status-right`
-- Linux: `now-playing`, `claude-usage`, date, CPU/RAM, hostname
-- macOS: `claude-usage`, battery (`pmset`), date, hostname
+- Centre (both platforms): `claude-usage`, via `scripts/status-centre`
+- Linux right: `now-playing`, date, CPU/RAM, hostname
+- macOS right: battery (`pmset`), date, hostname
 
 TPM plugins:
 

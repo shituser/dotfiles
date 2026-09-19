@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+# tmux has no status-centre option, so inject a centred section into the
+# default status line, just before the right-hand section. The content comes
+# from the @status-centre user option (set in base16.sh). Rebuilding from the
+# default each run keeps re-sourcing idempotent and tracks the tmux version.
+
+set -euo pipefail
+
+tmux set -gu status-format
+fmt="$(tmux show -gv 'status-format[0]')"
+marker='#[nolist align=right'
+centre='#[nolist align=absolute-centre]#[push-default]#{T:@status-centre}#[pop-default]#[default]'
+
+[[ "$fmt" == *"$marker"* ]] || exit 0
+tmux set -g 'status-format[0]' "${fmt/"$marker"/"$centre$marker"}"
