@@ -2,15 +2,57 @@
 
 # tmux has no status-centre option, so inject a centred section into the
 # default status line, just before the right-hand section. The content comes
-# from the @status-centre user option (set in base16.sh). Rebuilding from the
-# default each run keeps re-sourcing idempotent and tracks the tmux version.
+# from the @status-centre user option (set in base16.sh). Rebuilding from
+# tmux's own default each run keeps re-sourcing idempotent and tracks the
+# installed tmux version.
+#
+# Deliberately conservative: macOS still ships bash 3.2, where quoting inside
+# ${var/pat/rep} can't be trusted to keep "[" literal, so awk's index/substr do
+# the insertion instead. If anything about the format is unexpected, the widget
+# falls back to the right-hand side rather than disappearing.
 
 set -euo pipefail
 
-tmux set -gu status-format
-fmt="$(tmux show -gv 'status-format[0]')"
-marker='#[nolist align=right'
-centre='#[nolist align=absolute-centre]#[push-default]#{T:@status-centre}#[pop-default]#[default]'
+export MARKER='#[nolist align=right'
+export CENTRE='#[nolist align=absolute-centre]#[push-default]#{T:@status-centre}#[pop-default]#[default]'
 
-[[ "$fmt" == *"$marker"* ]] || exit 0
-tmux set -g 'status-format[0]' "${fmt/"$marker"/"$centre$marker"}"
+# Last resort: prepend the widget to status-right. base16.sh rebuilds
+# status-right before calling this, so re-sourcing doesn't stack copies.
+fallback() {
+  tmux set -g status-right "$(tmux show -gv @status-centre) $(tmux show -gv status-right)"
+}
+
+# align=absolute-centre needs tmux 3.2+. Version strings vary ("3.5a",
+# "next-3.6"), so only compare when both parts are plain integers.
+version="$(tmux -V | sed 's/^tmux //')"
+major="${version%%.*}"
+minor="${version#*.}"
+minor="${minor%%[^0-9]*}"
+case "$major$minor" in
+  *[^0-9]* | '') ;;
+  *)
+    if [ "$major" -lt 3 ] || { [ "$major" -eq 3 ] && [ "$minor" -lt 2 ]; }; then
+      fallback
+      exit 0
+    fi
+    ;;
+esac
+
+tmux set -gu status-format
+FMT="$(tmux show -gv 'status-format[0]')"
+export FMT
+
+# ENVIRON, not -v: awk processes escape sequences in -v assignments.
+if ! new="$(awk 'BEGIN {
+  i = index(ENVIRON["FMT"], ENVIRON["MARKER"])
+  if (i == 0) exit 1
+  printf "%s%s%s", substr(ENVIRON["FMT"], 1, i - 1), ENVIRON["CENTRE"], substr(ENVIRON["FMT"], i)
+}')"; then
+  fallback
+  exit 0
+fi
+
+if ! tmux set -g 'status-format[0]' "$new" 2>/dev/null; then
+  tmux set -gu status-format
+  fallback
+fi
